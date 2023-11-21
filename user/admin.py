@@ -7,13 +7,13 @@ from .models import CustomUser, SocialProfile, Credentials
 class CustomUserAdmin(UserAdmin):
     list_display = [
         "username",
-        "email",
         "phone",
         "first_name",
         "last_name",
         "is_active",
         "created_at",
     ]
+    # exclude = ["date_joined"]
 
     list_filter = ["email", "username", "is_staff", "is_active"]
 

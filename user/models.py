@@ -35,6 +35,7 @@ class UserManager(BaseUserManager):
             raise ValueError(_("You must provide an email address"))
         email = self.normalize_email(email)
         user = self.model(
+            email=email,
             username=username,
             first_name=first_name,
             last_name=last_name,
@@ -71,12 +72,15 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(_("first name"), max_length=100, blank=True)
     last_name = models.CharField(_("last name"), max_length=100, blank=True)
     avatar = models.ImageField(
-        _("profile picture"), upload_to="../assets/customers/", max_length=100, blank=True
+        _("profile picture"),
+        upload_to="../assets/customers/",
+        max_length=100,
+        blank=True,
     )
     locale = models.CharField(_("locale setting"), choices=locale_options)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(default=timezone.now, blank=True)
-    last_login = models.DateTimeField(auto_now=True, blank=True)
+    last_login = models.DateTimeField(null=True, blank=True)
     email_validated = models.BooleanField(default=False)
     phone_validated = models.BooleanField(default=False)
     bio = models.CharField(max_length=200, blank=True)
@@ -107,8 +111,10 @@ class SocialProfile(models.Model):
         ("github", "GitHub"),
         ("slack", "Slack"),
     )
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, unique=True
+    user_id = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="user_id",
+        on_delete=models.CASCADE,
     )
     platform = models.CharField(max_length=20, choices=platform_options)
     platform_user = models.CharField()
@@ -132,7 +138,11 @@ class Credentials(models.Model):
     )
     provider_id = models.CharField(max_length=50)
     provider_key = models.CharField(max_length=100)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="user_id",
+        on_delete=models.CASCADE,
+    )
     hasher = models.TextField(max_length=20, choices=hasher_options)
     password_hash = models.CharField(max_length=100)
     password_salt = models.CharField(max_length=100)

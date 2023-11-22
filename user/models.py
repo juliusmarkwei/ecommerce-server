@@ -66,24 +66,26 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         regex=r"^\+?1?\d{9,15}$",
         message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.",
     )
-    phone = models.CharField(validators=[phone_regex], max_length=20, unique=True)
+    phone = models.CharField(
+        validators=[phone_regex], max_length=20, unique=True, blank=True, null=True
+    )
     role = models.CharField(max_length=10, choices=role_options)
     username = models.CharField(_("user name"), max_length=100, unique=True)
     first_name = models.CharField(_("first name"), max_length=100, blank=True)
     last_name = models.CharField(_("last name"), max_length=100, blank=True)
     avatar = models.ImageField(
         _("profile picture"),
-        upload_to="../assets/customers/",
+        upload_to="assets/customers/",
         max_length=100,
         blank=True,
     )
     locale = models.CharField(_("locale setting"), choices=locale_options)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(default=timezone.now, blank=True)
+    date_joined = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_login = models.DateTimeField(null=True, blank=True)
     email_validated = models.BooleanField(default=False)
     phone_validated = models.BooleanField(default=False)
-    bio = models.CharField(max_length=200, blank=True)
+    bio = models.TextField(max_length=200, blank=True)
     company = models.CharField(max_length=200, blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
@@ -97,9 +99,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.username
 
     class Meta:
-        verbose_name = "Custom User"
-        verbose_name_plural = "Custom Users"
-        ordering = ("-created_at",)
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+        ordering = ("-date_joined",)
 
 
 class SocialProfile(models.Model):

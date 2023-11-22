@@ -5,17 +5,39 @@ from .models import CustomUser, SocialProfile, Credentials
 
 
 class CustomUserAdmin(UserAdmin):
-    list_display = [
+    list_display = (
         "username",
         "phone",
         "first_name",
         "last_name",
         "is_active",
-        "created_at",
-    ]
-    # exclude = ["date_joined"]
+        "is_staff",
+        "date_joined",
+    )
 
-    list_filter = ["email", "username", "is_staff", "is_active"]
+    list_filter = ("email", "username", "is_staff", "is_active")
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "email",
+                    "username",
+                    "first_name",
+                    "last_name",
+                    "phone",
+                    "role",
+                    "avatar",
+                    "locale",
+                    "company",
+                    "date_joined",
+                ),
+            },
+        ),
+        ("Permissions", {"fields": ("is_staff", "is_superuser", "is_active")}),
+        ("Personal", {"fields": ("bio",)}),
+    )
 
 
 # Registering each model with the admin site

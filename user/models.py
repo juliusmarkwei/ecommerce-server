@@ -148,6 +148,10 @@ class Credentials(models.Model):
     hasher = models.TextField(max_length=20, choices=hasher_options)
     password_hash = models.CharField(max_length=100)
     password_salt = models.CharField(max_length=100)
+    
+    def save(self, *args, **kwargs):
+        self.user_id = request.GET.get('username')
+        super().save(self, *args, **kwargs)
 
     def __str__(self):
         return self.user_id

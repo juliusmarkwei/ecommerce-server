@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.validators import RegexValidator
 from django.conf import settings
+from django.utils.text import slugify
 
 
 class UserManager(BaseUserManager):
@@ -59,7 +60,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )
 
     slug = models.SlugField(
-        verbose_name="A short label for URLs", max_length=100, blank=True
+        verbose_name="A short label for URLs", max_length=100, blank=True, null=True
     )
     email = models.EmailField(_("email address"), max_length=100, unique=True)
     phone_regex = RegexValidator(
@@ -94,6 +95,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email", "phone", "first_name", "last_name"]
+
+    def save(self, *args, **kwargs):
+        if self.first_name and self.last_name:
+            self.slug = slugify(self.first_name + self.last_name)
+        else:
+            self.slug = self.username
+        return super(CustomUser, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.username
@@ -148,9 +156,9 @@ class Credentials(models.Model):
     hasher = models.TextField(max_length=20, choices=hasher_options)
     password_hash = models.CharField(max_length=100)
     password_salt = models.CharField(max_length=100)
-    
+
     def save(self, *args, **kwargs):
-        self.user_id = request.GET.get('username')
+        self.user_id = request.GET.get("username")
         super().save(self, *args, **kwargs)
 
     def __str__(self):

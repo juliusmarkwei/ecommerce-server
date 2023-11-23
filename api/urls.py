@@ -1,11 +1,10 @@
 from . import views
 from django.urls import path, include
 
-app_name = "api"
 app_name = "ecommerce_api"
 urlpatterns = [
     path("users/", views.UsersList.as_view(), name="users"),
-    path("users/<int:pk>/", views.UsersRetrieve.as_view(), name="user-rud"),
+    # path("users/<int:pk>/", views.UsersRetrieve.as_view(), name="user-rud"),
     path('users/profiles/', views.SocialProfileList.as_view(), name="profiles"),
     path('users/profiles/<int:pk>/', views.SocialProfileRetrieve.as_view(), name="profiles-rud"),
     path("users/credentials/", views.CredentialsList.as_view(), name="credentials"),

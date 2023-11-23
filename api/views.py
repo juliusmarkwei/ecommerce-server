@@ -7,13 +7,51 @@ from order import models as order_models
 from rest_framework import generics
 from . import serializers
 from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
+from rest_framework import status
 
 
 # users views
-class UsersList(generics.ListCreateAPIView):
-    queryset = user_models.CustomUser.objects.all()
-    serializer_class = serializers.CustomUserSerializer
+class UsersList(APIView):
     permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        users = user_models.CustomUser.objects.all()
+        return users
+
+    def get(self, request, *args, **kwargs):
+        
+        id = request.query_params["id"]
+        user = user_models.CustomUser.objects.get(id=id)
+        
+        users = self.get_queryset()
+        serializer = serializers.CustomUserSerializer(users, many=True)
+
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        # data = request.data
+        # new_user = user_models.CustomUser.objects.create_user(
+        #     username=data.get("username"),
+        #     first_name=data.get("first_name"),
+        #     last_name=data.get("last_name"),
+        #     email=data.get("email"),
+        #     password=data.get("password"),
+        #     phone=data.get("phone"),
+        # )
+        # serializer = serializers.CustomUserSerializer(new_user)
+
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # else:
+        #     raise Response(serializer.errors)
+        serializer = serializers.CustomUserSerializer(data=request.data)
+        if serializer.is_valid():
+            new_user = serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UsersRetrieve(generics.RetrieveUpdateDestroyAPIView):

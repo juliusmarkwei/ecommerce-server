@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
+from django.utils import timezone
 
 
 class Categories(models.Model):
@@ -16,13 +17,14 @@ class Categories(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     tags = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         # Automatically set the slug based on the name
         if not self.slug:
             self.slug = slugify(self.name)
+            self.updated_at = timezone.now()
         super(Categories, self).save(*args, **kwargs)
 
     def __str__(self):

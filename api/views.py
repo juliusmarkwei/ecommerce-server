@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from user import models as user_models
 from product import models as product_models
 from cart import models as cart_models
@@ -12,7 +12,7 @@ from rest_framework import status
 
 
 # users views
-class UsersList(APIView):
+class UsersView(APIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
@@ -20,44 +20,33 @@ class UsersList(APIView):
         return users
 
     def get(self, request, *args, **kwargs):
-        
-        id = request.query_params["id"]
-        user = user_models.CustomUser.objects.get(id=id)
-        
-        users = self.get_queryset()
-        serializer = serializers.CustomUserSerializer(users, many=True)
-
-        return Response(serializer.data)
+        user_id = None
+        try:
+            user_id = request.query_params["id"]
+            user = user_models.CustomUser.objects.get(id=user_id)
+            serializer = serializers.CustomUserSerializer(user)
+        except:
+            print(f"User id {user_id} not found")
+            users = self.get_queryset()
+            serializer = serializers.CustomUserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
-        # data = request.data
-        # new_user = user_models.CustomUser.objects.create_user(
-        #     username=data.get("username"),
-        #     first_name=data.get("first_name"),
-        #     last_name=data.get("last_name"),
-        #     email=data.get("email"),
-        #     password=data.get("password"),
-        #     phone=data.get("phone"),
-        # )
-        # serializer = serializers.CustomUserSerializer(new_user)
-
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # else:
-        #     raise Response(serializer.errors)
-        serializer = serializers.CustomUserSerializer(data=request.data)
-        if serializer.is_valid():
-            new_user = serializer.save()
+        user_data = request.data
+        try:
+            user = user_models.CustomUser.objects.create_user(
+                email=user_data["email"],
+                username=user_data["username"],
+                first_name=user_data["first_name"],
+                last_name=user_data["last_name"],
+                password=user_data["password"],
+                phone=user_data["phone"],
+            )
+            user.save()
+            serializer = serializers.CustomUserSerializer(user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UsersRetrieve(generics.RetrieveUpdateDestroyAPIView):
-    queryset = user_models.CustomUser.objects.all()
-    serializer_class = serializers.CustomUserSerializer
-    permission_classes = [AllowAny]
+        except Exception as e:
+            return Response("Error rasies during user creation")
 
 
 class SocialProfileList(generics.ListCreateAPIView):
@@ -85,16 +74,41 @@ class CredentialsRetrieve(generics.RetrieveUpdateDestroyAPIView):
 
 
 # product views
-class ProductList(generics.ListAPIView):
-    queryset = product_models.Products.objects.all()
-    serializer_class = serializers.ProductsSerializer
+class ProductsView(APIView):
     permission_classes = [AllowAny]
 
+    def get(self, request, *args, **kwargs):
+        try:
+            product_name = request.query_params["title"]
+            product = product_models.Products.objects.get(title=product_name)
+            serializer = serializers.ProductsSerializer(product)
 
-class ProductRetrieve(generics.RetrieveUpdateDestroyAPIView):
-    queryset = product_models.Products.objects.all()
-    serializer_class = serializers.ProductsSerializer
-    permission_classes = [AllowAny]
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
+            products = product_models.Products.objects.all()
+            serializer = serializers.ProductsSerializer(products, many=True)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        product_data = request.data
+        # try:
+        product = product_models.Products.objects.create(
+            title=product_data["title"],
+            category=product_data["category"],
+            description=product_data["description"],
+            tags=product_data["tags"],
+            summary=product_data["summary"],
+            price=product_data["price"],
+            discount_type=product_data["discount_type"],
+            discount_value=product_data["discount_value"],
+        )
+        product.save()
+        serializer = serializers.ProductsSerializer(product)
+
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        # except:
+        #     return Response("Post Request received",status=status.HTTP_400_BAD_REQUEST)
 
 
 class CategoriesList(generics.ListCreateAPIView):

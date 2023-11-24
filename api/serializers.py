@@ -49,6 +49,7 @@ class ProductsSerializer(ModelSerializer):
     class Meta:
         model = product_models.Products
         fields = [
+            "id",
             "category",
             "title",
             "picture",
@@ -67,6 +68,7 @@ class CategoriesSerializer(ModelSerializer):
     class Meta:
         model = product_models.Categories
         fields = [
+            "id",
             "parent_category",
             "slug",
             "name",

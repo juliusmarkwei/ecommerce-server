@@ -1,5 +1,5 @@
 from . import views
-from django.urls import path, include
+from django.urls import path, re_path, include
 
 app_name = "ecommerce_api"
 urlpatterns = [
@@ -8,9 +8,8 @@ urlpatterns = [
     path('users/profiles/<int:pk>/', views.SocialProfileRetrieve.as_view(), name="profiles-rud"),
     path("users/credentials/", views.CredentialsList.as_view(), name="credentials"),
     path("users/credentials/<int:pk>/", views.CredentialsRetrieve.as_view(), name="credentials-rud"),
-    path("products/", views.ProductsView.as_view(), name="products"),
+    re_path("products/(?:(?P<pk>\d+)/)?$", views.ProductsView.as_view(), name="products"),
     path("products/categories/", views.CategoriesList.as_view(), name="categories"),
-    path("products/categories/<int:pk>/", views.CategoriesRetrieve.as_view(), name="categories-rud"),
     path("products/reviews/", views.ReviewList.as_view(), name="review"),
     path("products/reviews/<int:pk>", views.ReviewRetrieve.as_view(), name="review-rud"),
     path("orders/", views.OrderList.as_view(), name="orders"),

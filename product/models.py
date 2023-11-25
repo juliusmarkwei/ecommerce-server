@@ -48,8 +48,8 @@ class Products(models.Model):
         verbose_name="category_id",
         on_delete=models.CASCADE,
     )
-    title = models.CharField(_("product title"), max_length=200)
-    picture = models.ImageField(_("image of product"), upload_to="assets/products/")
+    title = models.CharField(_("product title"), max_length=200, unique=True)
+    picture = models.ImageField(_("image of product"), upload_to="assets/products/", null=True, blank=True)
     summary = models.TextField(_("product summary"), max_length=200)
     description = models.TextField(_("product description"), max_length=200)
     price = models.FloatField(_("product price (GH)"), default=0.0)

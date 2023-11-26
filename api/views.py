@@ -1,11 +1,22 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from user.models import CustomUser, SocialProfile, Credentials
-from product.models import Products, Categories, Reviews
-from cart.models import Carts, CartItems
-from order.models import Orders, OrderLines
+from src.user.models import CustomUser, SocialProfile, Credentials
+from src.product.models import Products, Categories, Reviews
+from src.cart.models import Carts, CartItems
+from src.order.models import Orders, OrderLines
 from rest_framework import generics
-from . import serializers
+from .serializers import (
+    CustomUserSerializer,
+    SocialProfileSerializer,
+    CredentialsSerializer,
+    ReviewsSerializer,
+    OrdersSerializer,
+    OrderLinesSerializer,
+    CartsSerializer,
+    CartItemsSerializer,
+    CategoriesSerializer,
+    ProductsSerializer
+)
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.datastructures import MultiValueDictKeyError
@@ -26,11 +37,11 @@ class UsersView(APIView):
         try:
             user_id = request.query_params["id"]
             user = CustomUser.objects.get(id=user_id)
-            serializer = serializers.CustomUserSerializer(user)
+            serializer = CustomUserSerializer(user)
         except:
             print(f"User id {user_id} not found")
             users = self.get_queryset()
-            serializer = serializers.CustomUserSerializer(users, many=True)
+            serializer = CustomUserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
@@ -45,7 +56,7 @@ class UsersView(APIView):
                 phone=user_data["phone"],
             )
             user.save()
-            serializer = serializers.CustomUserSerializer(user)
+            serializer = CustomUserSerializer(user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response("Error rasies during user creation")
@@ -71,25 +82,25 @@ class UsersView(APIView):
 
 class SocialProfileList(generics.ListCreateAPIView):
     queryset = SocialProfile.objects.all()
-    serializer_class = serializers.SocialProfileSerializer
+    serializer_class = SocialProfileSerializer
     permission_classes = [AllowAny]
 
 
 class SocialProfileRetrieve(generics.RetrieveUpdateDestroyAPIView):
     queryset = SocialProfile.objects.all()
-    serializer_class = serializers.SocialProfileSerializer
+    serializer_class = SocialProfileSerializer
     permission_classes = [AllowAny]
 
 
 class CredentialsList(generics.ListCreateAPIView):
     queryset = Credentials.objects.all()
-    serializer_class = serializers.CredentialsSerializer
+    serializer_class = CredentialsSerializer
     permission_classes = [AllowAny]
 
 
 class CredentialsRetrieve(generics.RetrieveUpdateDestroyAPIView):
     queryset = Credentials.objects.all()
-    serializer_class = serializers.CredentialsSerializer
+    serializer_class = CredentialsSerializer
     permission_classes = [AllowAny]
 
 
@@ -102,7 +113,7 @@ class ProductsView(APIView):
         if pk:
             try:
                 product = Products.objects.get(pk=pk)
-                serializer = serializers.ProductsSerializer(product)
+                serializer = ProductsSerializer(product)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except Products.DoesNotExist:
                 return Response(
@@ -113,12 +124,12 @@ class ProductsView(APIView):
             try:
                 product_name = request.query_params["title"]
                 product = Products.objects.get(title=product_name)
-                serializer = serializers.ProductsSerializer(product)
+                serializer = ProductsSerializer(product)
 
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except:
                 products = Products.objects.all()
-                serializer = serializers.ProductsSerializer(products, many=True)
+                serializer = ProductsSerializer(products, many=True)
 
                 return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -141,7 +152,7 @@ class ProductsView(APIView):
                 discount_value=product_data["discount_value"],
             )
             product.save()
-            serializer = serializers.ProductsSerializer(product)
+            serializer = ProductsSerializer(product)
 
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         except:
@@ -192,7 +203,7 @@ class CategoriesViews(APIView):
         if pk:
             try:
                 category = Categories.objects.get(id=pk)
-                serializer = serializers.CategoriesSerializer(category)
+                serializer = CategoriesSerializer(category)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except:
                 return Response(
@@ -204,7 +215,7 @@ class CategoriesViews(APIView):
                 category_name = request.query_params.get("name")
                 try:
                     category = Categories.objects.get(name=category_name)
-                    serializer = serializers.CategoriesSerializer(category)
+                    serializer = CategoriesSerializer(category)
                     return Response(serializer.data, status=status.HTTP_200_OK)
                 except Categories.DoesNotExist:
                     return Response(
@@ -220,7 +231,7 @@ class CategoriesViews(APIView):
                 )
 
         category = Categories.objects.all()
-        serializer = serializers.CategoriesSerializer(category, many=True)
+        serializer = CategoriesSerializer(category, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -255,7 +266,7 @@ class CategoriesViews(APIView):
 
         print("----------------saving object into database----------------")
         category.save()
-        serializer = serializers.CategoriesSerializer(category)
+        serializer = CategoriesSerializer(category)
 
         return Response(
             {{"message": "Data sent successfully"}, {"data": serializer.data}},
@@ -275,7 +286,11 @@ class CategoriesViews(APIView):
                 )
         elif request.query_params:
             if "name" in request.query_params:
-                category = Categories.objects.get(name=request.query_params.get("name"))
+                category_name = request.query_params.get("name")
+                try:
+                    category = Categories.objects.get(name=category_name)
+                except ObjectDoesNotExist:
+                    return Response({"error": f"Invalid category name {category_name}"})
             else:
                 return Response(
                     {
@@ -290,63 +305,64 @@ class CategoriesViews(APIView):
         )
 
 
-class ReviewList(generics.ListCreateAPIView):
-    queryset = Reviews.objects.all()
-    serializer_class = serializers.ReviewsSerializer
+class ReviewView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
+    
+    def get(self, request, *args, **kwargs):
+        pass
 
 
 class ReviewRetrieve(generics.RetrieveUpdateDestroyAPIView):
     queryset = Reviews.objects.all()
-    serializer_class = serializers.ReviewsSerializer
+    serializer_class = ReviewsSerializer
     permission_classes = [AllowAny]
 
 
 # order views
 class OrderList(generics.ListCreateAPIView):
     queryset = Orders.objects.all()
-    serializer_class = serializers.OrdersSerializer
+    serializer_class = OrdersSerializer
     permission_classes = [AllowAny]
 
 
 class OrderRetrieve(generics.RetrieveUpdateDestroyAPIView):
     queryset = Orders.objects.all()
-    serializer_class = serializers.OrdersSerializer
+    serializer_class = OrdersSerializer
     permission_classes = [AllowAny]
 
 
 class OrderLinesList(generics.ListCreateAPIView):
     queryset = OrderLines.objects.all()
-    serializer_class = serializers.OrderLinesSerializer
+    serializer_class = OrderLinesSerializer
     permission_classes = [AllowAny]
 
 
 class OrderLinesRetrieve(generics.RetrieveUpdateDestroyAPIView):
     queryset = OrderLines.objects.all()
-    serializer_class = serializers.OrderLinesSerializer
+    serializer_class = OrderLinesSerializer
     permission_classes = [AllowAny]
 
 
 # cart views
 class CartsList(generics.ListCreateAPIView):
     queryset = Carts.objects.all()
-    serializer_class = serializers.CartsSerializer
+    serializer_class = CartsSerializer
     permission_classes = [AllowAny]
 
 
 class CartsRetieve(generics.RetrieveUpdateDestroyAPIView):
     queryset = Carts.objects.all()
-    serializer_class = serializers.CartsSerializer
+    serializer_class = CartsSerializer
     permission_classes = [AllowAny]
 
 
 class CartItemsList(generics.ListCreateAPIView):
     queryset = CartItems.objects.all()
-    serializer_class = serializers.CartItemsSerializer
+    serializer_class = CartItemsSerializer
     permission_classes = [AllowAny]
 
 
 class CartItemsRetrieve(generics.RetrieveUpdateDestroyAPIView):
     queryset = CartItems.objects.all()
-    serializer_class = serializers.CartItemsSerializer
+    serializer_class = CartItemsSerializer
     permission_classes = [AllowAny]

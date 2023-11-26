@@ -1,8 +1,8 @@
 from rest_framework.serializers import ModelSerializer
-from user import models as user_models
-from product import models as product_models
-from cart import models as cart_models
-from order import models as order_models
+from src.user import models as user_models
+from src.product import models as product_models
+from src.cart import models as cart_models
+from src.order import models as order_models
 
 
 # user serializer

@@ -9,6 +9,8 @@ from . import serializers
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.datastructures import MultiValueDictKeyError
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.utils import IntegrityError
 
 
 # users views
@@ -123,8 +125,11 @@ class ProductsView(APIView):
     def post(self, request, *args, **kwargs):
         product_data = request.data
 
-        category_instance = Categories.objects.get(id=product_data["category"])
         try:
+            try:
+                category_instance = Categories.objects.get(id=product_data["category"])
+            except ObjectDoesNotExist:
+                category_instance = None
             product = Products.objects.create(
                 title=product_data["title"],
                 category=category_instance,
@@ -179,22 +184,110 @@ class ProductsView(APIView):
         )
 
 
-class CategoriesList(APIView):
+class CategoriesViews(APIView):
     permission_classes = [AllowAny]
 
-    def get(self, request, *args, **kwargs):
-        if request.GET:
-        # Do something if query parameters are present
-            return Response(f"Query parameters found: {request.GET}")
-        else:
-            # Do something else if no query parameters are present
-            return Response("No query parameters")
+    def get(self, request, pk=None, *args, **kwargs):
+        print(request.user)
+        if pk:
+            try:
+                category = Categories.objects.get(id=pk)
+                serializer = serializers.CategoriesSerializer(category)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except:
+                return Response(
+                    {"message": f"Category with id {pk} not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        if request.query_params:
+            if "name" in request.query_params:
+                category_name = request.query_params.get("name")
+                try:
+                    category = Categories.objects.get(name=category_name)
+                    serializer = serializers.CategoriesSerializer(category)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                except Categories.DoesNotExist:
+                    return Response(
+                        {"message": f"Category with name '{category_name}' not found."}
+                    )
+            else:
+                return Response(
+                    {
+                        "message",
+                        "Provide 'name' as key with a value to query for an item.",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
+        category = Categories.objects.all()
+        serializer = serializers.CategoriesSerializer(category, many=True)
 
-class CategoriesRetrieve(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Categories.objects.all()
-    serializer_class = serializers.CategoriesSerializer
-    permission_classes = [AllowAny]
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        category_data = request.data
+        try:
+            try:
+                parent_category_instance = Categories.objects.get(
+                    id=category_data["parent_category"]
+                )
+            except (ObjectDoesNotExist, KeyError):
+                parent_category_instance = None
+
+            category = Categories.objects.create(
+                parent_category=parent_category_instance,
+                name=category_data["name"],
+                description=category_data["description"],
+                tags=category_data["tags"],
+            )
+        except KeyError as e:
+            return Response(
+                {"error": f"Missing field: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except IntegrityError:
+            return Response(
+                {
+                    "error": f"Category name '{category_data['name']}' already exists in the database"
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        print("----------------saving object into database----------------")
+        category.save()
+        serializer = serializers.CategoriesSerializer(category)
+
+        return Response(
+            {{"message": "Data sent successfully"}, {"data": serializer.data}},
+            status=status.HTTP_201_CREATED,
+        )
+
+    def delete(self, request, pk=None, *args, **kwargs):
+        if pk:
+            try:
+                category = Categories.objects.get(id=pk)
+            except ObjectDoesNotExist:
+                return Response(
+                    {
+                        "error": f"Category item with if {pk} does not exist. Provide a valid 'ID' or a 'name'"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        elif request.query_params:
+            if "name" in request.query_params:
+                category = Categories.objects.get(name=request.query_params.get("name"))
+            else:
+                return Response(
+                    {
+                        "error": f"Provide 'name' as key with a value (Category name) to remove the item."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        category.delete()
+        return Response(
+            {"success": "Category item deleted successfully"}, status=status.HTTP_200_OK
+        )
 
 
 class ReviewList(generics.ListCreateAPIView):

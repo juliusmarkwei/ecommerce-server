@@ -14,7 +14,7 @@ class Categories(models.Model):
         related_name="subcategories",  # How to access the children of a category
     )
     slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
     tags = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now=True)

@@ -93,7 +93,7 @@ class Reviews(models.Model):
     created_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.user_id + " - " + self.product
+        return self.product
 
     class Meta:
         ordering = ("-created_at",)

@@ -11,7 +11,6 @@ urlpatterns = [
     re_path("products/(?:(?P<pk>\d+)/)?$", views.ProductsView.as_view(), name="products"),
     re_path("products/categories/(?:(?P<pk>\d+)/)?$", views.CategoriesViews.as_view(), name="categories"),
     re_path("products/reviews/(?:(?P<pk>\d+)/)?$", views.ReviewView.as_view(), name="review"),
-    path("products/reviews/<int:pk>", views.ReviewRetrieve.as_view(), name="review-rud"),
     path("orders/", views.OrderList.as_view(), name="orders"),
     path("orders/<int:pk>/", views.OrderRetrieve.as_view(), name="orders-rud"),
     path("order-lines/", views.OrderLinesList.as_view(), name="order-lines"),

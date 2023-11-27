@@ -15,7 +15,7 @@ from .serializers import (
     CartsSerializer,
     CartItemsSerializer,
     CategoriesSerializer,
-    ProductsSerializer
+    ProductsSerializer,
 )
 from rest_framework.response import Response
 from rest_framework import status
@@ -305,17 +305,44 @@ class CategoriesViews(APIView):
         )
 
 
-class ReviewView(generics.ListCreateAPIView):
+class ReviewView(APIView):
     permission_classes = [AllowAny]
+
+    def get(self, request, pk=None, *args, **kwargs):
+        if pk:
+            try:
+                review = Reviews.objects.get(id=pk)
+            except ObjectDoesNotExist:
+                return Response(
+                    {"error": f"You provided an invalid id '{pk}.'"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        elif request.query_params:
+            if "product" in request.query_params:
+                product_name = request.query_params.get("product")
+                try:
+                    review = Reviews.objects.get(product=product_name)
+                except ObjectDoesNotExist:
+                    return Response({"error": f"Invalid product name {product_name}"})
+            else:
+                return Response(
+                    {
+                        "error": f"Provide 'name' as key with a value (Category name) to select a product."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        
+        if pk or request.query_params:
+            serializer = ReviewsSerializer(review)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        reviews = Reviews.objects.all()
+        serializer = ReviewsSerializer(reviews, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         pass
-
-
-class ReviewRetrieve(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Reviews.objects.all()
-    serializer_class = ReviewsSerializer
-    permission_classes = [AllowAny]
 
 
 # order views

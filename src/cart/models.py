@@ -12,7 +12,7 @@ class Carts(models.Model):
         ("abandoned", "Abandoned"),
     )
     id = models.AutoField(primary_key=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_by = models.OneToOneField(settings.AUTH_USER_MODEL, unique=True, on_delete=models.CASCADE)
     status = models.CharField(_("status"), max_length=20, choices=status_options)
     created_at = models.DateTimeField(_("created_at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated_at"), auto_now=True)
@@ -40,6 +40,7 @@ class CartItems(models.Model):
         Products,
         verbose_name="product",
         on_delete=models.CASCADE,
+        to_field="title"
     )
     price = models.FloatField(default=0.0)
     quantity = models.IntegerField(default=0)
@@ -51,3 +52,4 @@ class CartItems(models.Model):
     class Meta:
         verbose_name = "Cart Item"
         verbose_name_plural = "Cart Items"
+        unique_together = ("cart_id", "product_id")

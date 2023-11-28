@@ -20,7 +20,7 @@ from .serializers import (
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.datastructures import MultiValueDictKeyError
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db.utils import IntegrityError
 
 
@@ -324,7 +324,10 @@ class ReviewView(APIView):
                 try:
                     review = Reviews.objects.get(product=product_name)
                 except ObjectDoesNotExist:
-                    return Response({"error": f"Invalid product name {product_name}"})
+                    return Response(
+                        {"error": f"Invalid product name '{product_name}'"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
             else:
                 return Response(
                     {
@@ -332,43 +335,165 @@ class ReviewView(APIView):
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-        
+
         if pk or request.query_params:
             serializer = ReviewsSerializer(review)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
         reviews = Reviews.objects.all()
         serializer = ReviewsSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     def post(self, request, *args, **kwargs):
-        pass
+        print(request.user)
+        user_id = CustomUser.objects.get(username=request.user)
+        product = Products.objects.get(title=request.data["product"])
+
+        review_data = request.data
+        try:
+            review = Reviews.objects.create(
+                user=user_id,
+                product=product,
+                rating=review_data["rating"],
+                comments=review_data["comments"],
+            )
+        except KeyError as e:
+            return Response(
+                {"error": f"Invalid key {e}"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        review.save()
+
+        serializer = ReviewsSerializer(review)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # order views
-class OrderList(generics.ListCreateAPIView):
-    queryset = Orders.objects.all()
-    serializer_class = OrdersSerializer
+class OrdersView(APIView):
     permission_classes = [AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        username = request.user
+        print(username)
+        
+        order = Orders.objects.create(user=username)
+        order.save()
+        serializer = OrdersSerializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def get(self, request, pk=None, *args, **kwargs):
+        print(request.user)
+        if pk:
+            try:
+                order = Orders.objects.get(id=pk)
+            except ObjectDoesNotExist:
+                return Response(
+                    {"error": f"You provided an invalid id '{pk}.'"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        elif request.query_params:
+            if "username" in request.query_params:
+                username = request.query_params.get("username")
+                try:
+                    order = Orders.objects.get(user=username)
+                except ObjectDoesNotExist:
+                    return Response(
+                        {"error": f"Invalid username name '{username}'"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            else:
+                return Response(
+                    {
+                        "error": f"Provide 'username' as key with a value (user's username) to select a review."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        if pk or request.query_params:
+            serializer = ReviewsSerializer(order)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        orders = Orders.objects.all()
+        serializer = OrdersSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class OrderRetrieve(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Orders.objects.all()
-    serializer_class = OrdersSerializer
+class OrderLinesView(APIView):
     permission_classes = [AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            order = Orders.objects.get(user=request.user)
+        except ObjectDoesNotExist:
+            return Response({"error": f"Order hasn't been created by user '{request.user}'"}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            product = Products.objects.get(title=request.data["product"])
+        except ObjectDoesNotExist:
+            return Response({"error": f"Product '{request.data['product']}' not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        try:
+            orderLine = OrderLines.objects.create(
+                order=order,
+                product=product,
+                price=product.price,
+                quantity=request.data["quantity"]
+            )
+        except KeyError as e:
+            return Response({"error": f"Invalid key {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError:
+            orderLine = OrderLines.objects.get(order=order, product=product)
+            orderLine.quantity += int(request.data["quantity"])
+            orderLine.save()
 
-class OrderLinesList(generics.ListCreateAPIView):
-    queryset = OrderLines.objects.all()
-    serializer_class = OrderLinesSerializer
-    permission_classes = [AllowAny]
+        serializer = OrderLinesSerializer(orderLine)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    
+    def get(self, request, *args, **kwargs):
+        if request.query_params:
+            if "product" in request.query_params:
+                product_name = request.query_params['product']
+                
+                try:
+                    # product = Products.objects.get(title=product_name).id
+                    orderLines = OrderLines.objects.filter(product=product_name)
+                    
+                    many = orderLines.count() > 1
+                    serializer = OrderLinesSerializer(orderLines, many=many)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
 
-class OrderLinesRetrieve(generics.RetrieveUpdateDestroyAPIView):
-    queryset = OrderLines.objects.all()
-    serializer_class = OrderLinesSerializer
-    permission_classes = [AllowAny]
+                except Products.DoesNotExist:
+                    return Response({"error": f"Product with title '{product_name}' does not exist."}, status=status.HTTP_404_NOT_FOUND)
+                    
+                serializer = OrderLinesSerializer(product_name)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            else:
+                keys = [key for key in request.query_params.keys()]
+                return Response({"error": f"Invalid key(s) '{keys}'"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            orderLines = OrderLines.objects.all()
+            serializer = OrderLinesSerializer(orderLines, many=True)
+            
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    def delete(self, request, format=None):
+        product = request.data["product"]
+        order = request.data["order"]
+        
+        try:
+            orderLine = OrderLines.objects.get(product=product, order=order)
+            orderLine.delete()
+            return Response({"message": "Order line deleted successfully"}, status=status.HTTP_200_OK)
+        
+        except ObjectDoesNotExist:
+            return Response({"error": "Order line not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        except MultipleObjectsReturned:
+            return Response({"error": "Multiple order lines found (data integrity issue)"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    
 
 # cart views
 class CartsList(generics.ListCreateAPIView):
@@ -377,19 +502,8 @@ class CartsList(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
 
 
-class CartsRetieve(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Carts.objects.all()
-    serializer_class = CartsSerializer
-    permission_classes = [AllowAny]
-
 
 class CartItemsList(generics.ListCreateAPIView):
-    queryset = CartItems.objects.all()
-    serializer_class = CartItemsSerializer
-    permission_classes = [AllowAny]
-
-
-class CartItemsRetrieve(generics.RetrieveUpdateDestroyAPIView):
     queryset = CartItems.objects.all()
     serializer_class = CartItemsSerializer
     permission_classes = [AllowAny]

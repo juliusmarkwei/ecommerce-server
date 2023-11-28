@@ -58,7 +58,6 @@ class ProductsSerializer(ModelSerializer):
             "price",
             "discount_type",
             "discount_value",
-            "tags",
             "created_at",
             "updated_at",
         ]
@@ -89,7 +88,7 @@ class ReviewsSerializer(ModelSerializer):
 class OrdersSerializer(ModelSerializer):
     class Meta:
         model = order_models.Orders
-        fields = ["user", "created_at"]
+        fields = ["id", "user", "created_at"]
 
 
 class OrderLinesSerializer(ModelSerializer):

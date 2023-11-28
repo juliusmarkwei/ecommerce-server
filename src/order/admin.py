@@ -1,9 +1,15 @@
 from django.contrib import admin
 from django.apps import apps
+from src.order.models import OrderLines, Orders
 
-order_models = apps.get_app_config('order').get_models()
-for model in order_models:
-    try:
-        admin.site.register(model)
-    except admin.sites.AlreadyRegistered:
-        pass
+
+class OrdersModelAdmin(admin.ModelAdmin):
+    list_display = ["id", "user", "created_at"]
+    search_fields = ["user"]
+    
+
+class OrderLinesModelAdmin(admin.ModelAdmin):
+    list_display = ["id", "order", "product", "price", "quantity"]
+    
+admin.site.register(Orders, OrdersModelAdmin)
+admin.site.register(OrderLines, OrderLinesModelAdmin)

@@ -23,7 +23,7 @@ class Orders(models.Model):
 
 
 class OrderLines(models.Model):
-    order = models.ForeignKey(Orders, on_delete=models.CASCADE)
+    order = models.ForeignKey(Orders, to_field="user", on_delete=models.CASCADE)
     product = models.ForeignKey(Products, to_field="title", on_delete=models.CASCADE)
     price = models.FloatField(_("product price (GH)"), default=0.0)
     quantity = models.IntegerField(_("quantity"), default=0)

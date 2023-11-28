@@ -54,7 +54,7 @@ class Products(models.Model):
     description = models.TextField(_("product description"), max_length=200)
     price = models.FloatField(_("product price (GH)"), default=0.0)
     discount_type = models.CharField(
-        _("discount type"), max_length=10, choices=discount_type_options
+        _("discount type"), max_length=10, choices=discount_type_options, default="none"
     )
     discount_value = models.FloatField(_("discount value"), default=0.0)
     tags = models.CharField(_("tags"), max_length=100)
@@ -78,14 +78,16 @@ class Reviews(models.Model):
         ("very satisfactory", "Very Satisfactory"),
         ("outstanding", "Outstanding"),
     )
-    user_id = models.ForeignKey(
+    user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        verbose_name="user_id",
+        verbose_name="user",
         on_delete=models.CASCADE,
+        default="kofi"
     )
     product = models.ForeignKey(
         Products,
-        verbose_name="product_id",
+        verbose_name="product",
+        to_field="title",
         on_delete=models.CASCADE,
     )
     rating = models.CharField(max_length=30, choices=rating_options)
@@ -93,7 +95,7 @@ class Reviews(models.Model):
     created_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.product
+        return str(self.product)
 
     class Meta:
         ordering = ("-created_at",)

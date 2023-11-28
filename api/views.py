@@ -496,14 +496,101 @@ class OrderLinesView(APIView):
     
 
 # cart views
-class CartsList(generics.ListCreateAPIView):
-    queryset = Carts.objects.all()
-    serializer_class = CartsSerializer
+class CartsView(APIView):
     permission_classes = [AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        created_by = request.user
+        try:
+            cart = Carts.objects.create(
+                created_by=created_by,
+                status=request.data["status"]
+            )
+        except KeyError as e:
+            return Response({"error": f"Invalid key {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError:
+            return Response({"error": f"Cart already exist for user '{created_by}'"})
+        cart.save()
+        serializer = CartsSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        
+        if request.query_params:
+            if "username" in request.query_params:
+                try:
+                    cart = Carts.objects.filter(created_by=user)
+                except ObjectDoesNotExist:
+                    return Response({"error": f"User '{user}' has no cart"})
+            
+            elif "status" in request.query_params:
+                try:
+                    cart = Carts.objects.filter(status=request.query_params.get("status"))
+                except ObjectDoesNotExist:
+                    return Response({"error": f"User '{user}' has no cart"}, status=status.HTTP_400_BAD_REQUEST)
+                
+            many = cart.count() > 1
+            serializer = CartsSerializer(cart, many=many)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        carts = Carts.objects.all()
+        serializer = CartsSerializer(carts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+            
+    def delete(self, request, *args, **kwargs):
+        user = request.user
+        try:
+            cart = Carts.objects.get(created_by=user)
+            cart.delete()
+            return Response({"message": "Cart deleted successfully"}, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({"error": f"User '{user}' has no cart"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-class CartItemsList(generics.ListCreateAPIView):
-    queryset = CartItems.objects.all()
-    serializer_class = CartItemsSerializer
+class CartItemsView(APIView):
     permission_classes = [AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        cart_id = Carts.objects.get(created_by=user)
+        product_id = Products.objects.get(title=request.data["product"])
+        
+        try:
+            cartItem = CartItems.objects.create(
+                cart_id=cart_id,
+                product_id=product_id,
+                price=product_id.price,
+                quantity=request.data["quantity"],
+            )
+        except KeyError as e:
+            return Response({"error": f"Invalid key {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError:
+            quantity = request.data["quantity"]
+            cartItem = CartItems.objects.get(cart_id=cart_id, product_id=product_id)
+            cartItem.quantity += quantity
+            cartItem.save()
+        cartItem.save()
+        serializer = CartItemsSerializer(cartItem)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        if request.query_params:
+            if "product" in request.query_params:
+                product = request.query_params.get("product")
+                try:
+                    cartItem = CartItems.objects.filter(product_id=product)
+                except ObjectDoesNotExist:
+                    return Response({"error": f"Product '{product}' not in cart"})
+            else:
+                keys = [key for key in request.query_params.keys()]
+                return Response({"error": f"Invalid key(s) '{keys}'"})
+            
+            many = cartItem.count() > 1
+            serializer = CartItemsSerializer(cartItem, many=many)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        cartItems = CartItems.objects.all()
+        serializer = CartItemsSerializer(cartItems, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

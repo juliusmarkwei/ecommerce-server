@@ -13,6 +13,6 @@ urlpatterns = [
     re_path("products/reviews/(?:(?P<pk>\d+)/)?$", views.ReviewView.as_view(), name="review"),
     re_path("orders/(?:(?P<pk>\d+)/)?$", views.OrdersView.as_view(), name="orders"),
     path("order-lines/", views.OrderLinesView.as_view(), name="order-lines"),
-    path("carts/", views.CartsList.as_view(), name="carts-list"),
-    path("cart-items/", views.CartItemsList.as_view(), name="cart-items"),
+    path("carts/", views.CartsView.as_view(), name="carts-list"),
+    path("cart-items/", views.CartItemsView.as_view(), name="cart-items"),
 ]

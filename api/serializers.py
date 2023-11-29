@@ -24,26 +24,6 @@ class CustomUserSerializer(ModelSerializer):
         ]
 
 
-class SocialProfileSerializer(ModelSerializer):
-    class Meta:
-        model = user_models.SocialProfile
-        fields = ["id", "user_id", "platform", "platform_user"]
-
-
-class CredentialsSerializer(ModelSerializer):
-    class Meta:
-        model = user_models.Credentials
-        fields = [
-            "id",
-            "provider_id",
-            "provider_key",
-            "user_id",
-            "hasher",
-            "password_hash",
-            "password_salt",
-        ]
-
-
 # product serializer
 class ProductsSerializer(ModelSerializer):
     class Meta:

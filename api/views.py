@@ -26,22 +26,46 @@ from django.db.utils import IntegrityError
 
 # users views
 class UsersView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
 
     def get_queryset(self):
         users = CustomUser.objects.all()
         return users
 
-    def get(self, request, *args, **kwargs):
-        user_id = None
-        try:
-            user_id = request.query_params["id"]
-            user = CustomUser.objects.get(id=user_id)
-            serializer = CustomUserSerializer(user)
-        except:
-            print(f"User id {user_id} not found")
-            users = self.get_queryset()
-            serializer = CustomUserSerializer(users, many=True)
+    def get(self, request, pk=None, *args, **kwargs):
+        print(request.user)
+        if pk:
+            try:
+                user = CustomUser.objects.get(pk=pk)
+                serializer = CustomUserSerializer(user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except CustomUser.DoesNotExist:
+                return Response(
+                    {"message": f"Product with id {pk} not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        else:
+            if request.query_params:
+                if "username" in request.query_params:
+                    try:
+                        username = request.query_params["username"]
+                        user = CustomUser.objects.get(username=username)
+                        
+                    except ObjectDoesNotExist:
+                        return Response({"error": f"user '{username}' does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+                elif "id" in request.query_params:
+                    try:
+                        user_id = request.query_params["id"]
+                        user = CustomUser.objects.get(id=user_id)
+                        
+                    except ObjectDoesNotExist:
+                        return Response({"error": f"User ID '{user_id}' does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+                    
+                serializer = CustomUserSerializer(user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        users = CustomUser.objects.all()
+        serializer = CustomUserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
@@ -55,11 +79,12 @@ class UsersView(APIView):
                 password=user_data["password"],
                 phone=user_data["phone"],
             )
-            user.save()
-            serializer = CustomUserSerializer(user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response("Error rasies during user creation")
+        except KeyError as e:
+            return Response({"error": f"Provide key(s) {e}"})
+        
+        user.save()
+        serializer = CustomUserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
         if request.query_params.get("username") != None:
@@ -72,7 +97,7 @@ class UsersView(APIView):
                 return Response({"message": "User deleted successfully"})
             except CustomUser.DoesNotExist:
                 return Response(
-                    {"message": f"User with username '{username}' not found"},
+                    {"message": f"User '{username}' not found"},
                     status=status.HTTP_404_NOT_FOUND,
                 )
         return Response(
@@ -80,33 +105,18 @@ class UsersView(APIView):
         )
 
 
-class SocialProfileList(generics.ListCreateAPIView):
-    queryset = SocialProfile.objects.all()
-    serializer_class = SocialProfileSerializer
+class SocialProfileView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
 
 
-class SocialProfileRetrieve(generics.RetrieveUpdateDestroyAPIView):
-    queryset = SocialProfile.objects.all()
-    serializer_class = SocialProfileSerializer
-    permission_classes = [AllowAny]
 
-
-class CredentialsList(generics.ListCreateAPIView):
-    queryset = Credentials.objects.all()
-    serializer_class = CredentialsSerializer
-    permission_classes = [AllowAny]
-
-
-class CredentialsRetrieve(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Credentials.objects.all()
-    serializer_class = CredentialsSerializer
+class CredentialsView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
 
 
 # product views
 class ProductsView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
 
     def get(self, request, pk=None, *args, **kwargs):
         print(request.user)
@@ -196,7 +206,7 @@ class ProductsView(APIView):
 
 
 class CategoriesViews(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
 
     def get(self, request, pk=None, *args, **kwargs):
         print(request.user)
@@ -306,7 +316,7 @@ class CategoriesViews(APIView):
 
 
 class ReviewView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
 
     def get(self, request, pk=None, *args, **kwargs):
         if pk:
@@ -359,7 +369,7 @@ class ReviewView(APIView):
             )
         except KeyError as e:
             return Response(
-                {"error": f"Invalid key {e}"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": f"Provide key(s) {e}"}, status=status.HTTP_400_BAD_REQUEST
             )
         review.save()
 
@@ -369,7 +379,7 @@ class ReviewView(APIView):
 
 # order views
 class OrdersView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
     
     def post(self, request, *args, **kwargs):
         username = request.user
@@ -419,7 +429,7 @@ class OrdersView(APIView):
 
 
 class OrderLinesView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
     
     def post(self, request, *args, **kwargs):
         try:
@@ -440,7 +450,7 @@ class OrderLinesView(APIView):
                 quantity=request.data["quantity"]
             )
         except KeyError as e:
-            return Response({"error": f"Invalid key {e}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"Provide key(s) {e}"}, status=status.HTTP_400_BAD_REQUEST)
         except IntegrityError:
             orderLine = OrderLines.objects.get(order=order, product=product)
             orderLine.quantity += int(request.data["quantity"])
@@ -471,7 +481,7 @@ class OrderLinesView(APIView):
             
             else:
                 keys = [key for key in request.query_params.keys()]
-                return Response({"error": f"Invalid key(s) '{keys}'"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": f"Provide key(s) '{keys}'"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             orderLines = OrderLines.objects.all()
             serializer = OrderLinesSerializer(orderLines, many=True)
@@ -497,7 +507,7 @@ class OrderLinesView(APIView):
 
 # cart views
 class CartsView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
     
     def post(self, request, *args, **kwargs):
         created_by = request.user
@@ -507,7 +517,7 @@ class CartsView(APIView):
                 status=request.data["status"]
             )
         except KeyError as e:
-            return Response({"error": f"Invalid key {e}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"Provide key(s) {e}"}, status=status.HTTP_400_BAD_REQUEST)
         except IntegrityError:
             return Response({"error": f"Cart already exist for user '{created_by}'"})
         cart.save()
@@ -549,11 +559,14 @@ class CartsView(APIView):
 
 
 class CartItemsView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
     
     def post(self, request, *args, **kwargs):
         user = request.user
-        cart_id = Carts.objects.get(created_by=user)
+        try:
+            cart_id = Carts.objects.get(created_by=user)
+        except ObjectDoesNotExist:
+            return Response({"error": f"User '{user}' has no cart"})
         product_id = Products.objects.get(title=request.data["product"])
         
         try:
@@ -564,7 +577,7 @@ class CartItemsView(APIView):
                 quantity=request.data["quantity"],
             )
         except KeyError as e:
-            return Response({"error": f"Invalid key {e}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"Provide key {e}"}, status=status.HTTP_400_BAD_REQUEST)
         except IntegrityError:
             quantity = request.data["quantity"]
             cartItem = CartItems.objects.get(cart_id=cart_id, product_id=product_id)
@@ -576,20 +589,26 @@ class CartItemsView(APIView):
     
     def get(self, request, *args, **kwargs):
         user = request.user
+        print(user)
+
         if request.query_params:
             if "product" in request.query_params:
-                product = request.query_params.get("product")
+                product_name = request.query_params.get("product")
                 try:
+                    product = Products.objects.get(title=product_name)
                     cartItem = CartItems.objects.filter(product_id=product)
                 except ObjectDoesNotExist:
-                    return Response({"error": f"Product '{product}' not in cart"})
+                    return Response({"error": f"Product '{product_name}' not found"}, status=status.HTTP_404_NOT_FOUND)
+                
+                many = cartItem.count() >= 1
+                print(many)
+                serializer = CartItemsSerializer(cartItem, many=many)
+                
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
             else:
                 keys = [key for key in request.query_params.keys()]
-                return Response({"error": f"Invalid key(s) '{keys}'"})
-            
-            many = cartItem.count() > 1
-            serializer = CartItemsSerializer(cartItem, many=many)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response({"error": f"Provide key(s) '{keys}'"}, status=status.HTTP_400_BAD_REQUEST)
         
         cartItems = CartItems.objects.all()
         serializer = CartItemsSerializer(cartItems, many=True)

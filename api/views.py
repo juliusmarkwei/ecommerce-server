@@ -1,14 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from src.user.models import CustomUser, SocialProfile, Credentials
+from src.user.models import CustomUser
 from src.product.models import Products, Categories, Reviews
 from src.cart.models import Carts, CartItems
 from src.order.models import Orders, OrderLines
 from rest_framework import generics
 from .serializers import (
     CustomUserSerializer,
-    SocialProfileSerializer,
-    CredentialsSerializer,
     ReviewsSerializer,
     OrdersSerializer,
     OrderLinesSerializer,
@@ -22,11 +20,17 @@ from rest_framework import status
 from django.utils.datastructures import MultiValueDictKeyError
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db.utils import IntegrityError
+from rest_framework_simplejwt.tokens import RefreshToken
+from .utils import Utils
+from django.contrib.sites.shortcuts import get_current_site
+from django.urls import reverse
+import jwt
+from django.conf import settings
 
 
 # users views
 class UsersView(APIView):
-    # permission_classes = [AllowAny]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         users = CustomUser.objects.all()
@@ -82,7 +86,21 @@ class UsersView(APIView):
         except KeyError as e:
             return Response({"error": f"Provide key(s) {e}"})
         
+        except IntegrityError as e:
+            return Response({"error": f"{e}"})
         user.save()
+        
+        user = CustomUser.objects.get(email=user.email)
+        token = RefreshToken.for_user(user).access_token
+        
+        current_site = get_current_site(request).domain
+        relative_link = reverse("verify-email")
+        
+        absurl = "http://" + current_site + relative_link + "?token=" + str(token)
+        email_body = "Hi" + user.username + " Use the link beelow to verify you email \n" + absurl
+        data = {"email_body": email_body, "to_email": user.email, "email_subject": "Verify your email"}
+        Utils.send_email(data)
+        
         serializer = CustomUserSerializer(user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -105,13 +123,22 @@ class UsersView(APIView):
         )
 
 
-class SocialProfileView(generics.ListCreateAPIView):
-    permission_classes = [AllowAny]
-
-
-
-class CredentialsView(generics.ListCreateAPIView):
-    permission_classes = [AllowAny]
+class VerifyEmail(APIView):
+    def get(self, request):
+        token = request.GET.get("token")
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')
+            user = CustomUser.objects.get(id=payload["user_id"])
+            
+            if not user.email_validated:
+                user.email_validated = True
+            user.save()
+            
+            return Response({"message": "Email successfully validated"}, status=status.HTTP_200_OK)
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Activation expired"}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.exception.DecodeError:
+            return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # product views

@@ -82,7 +82,6 @@ class Reviews(models.Model):
         settings.AUTH_USER_MODEL,
         verbose_name="user",
         on_delete=models.CASCADE,
-        default="kofi"
     )
     product = models.ForeignKey(
         Products,

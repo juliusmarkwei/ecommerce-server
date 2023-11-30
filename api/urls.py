@@ -11,5 +11,5 @@ urlpatterns = [
     path("order-lines/", views.OrderLinesView.as_view(), name="order-lines"),
     path("carts/", views.CartsView.as_view(), name="carts-list"),
     path("cart-items/", views.CartItemsView.as_view(), name="cart-items"),
-    path("verify-email", views.VerifyEmail.as_view(), name="verify-email")
+    # path("verify-email", views.VerifyEmail.as_view(), name="verify-email")
 ]

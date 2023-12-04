@@ -90,17 +90,6 @@ class UsersView(APIView):
             return Response({"error": f"{e}"})
         user.save()
         
-        # user = CustomUser.objects.get(email=user.email)
-        # token = RefreshToken.for_user(user).access_token
-        
-        # current_site = get_current_site(request).domain
-        # relative_link = reverse("verify-email")
-        
-        # absurl = "http://" + current_site + relative_link + "?token=" + str(token)
-        # email_body = "Hi" + user.username + " Use the link beelow to verify you email \n" + absurl
-        # data = {"email_body": email_body, "to_email": user.email, "email_subject": "Verify your email"}
-        # Utils.send_email(data)
-        
         serializer = CustomUserSerializer(user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -121,24 +110,6 @@ class UsersView(APIView):
         return Response(
             {"message": "Provide a 'username' parameter to perform deletion"}
         )
-
-
-# class VerifyEmail(APIView):
-#     def get(self, request):
-#         token = request.GET.get("token")
-#         try:
-#             payload = jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')
-#             user = CustomUser.objects.get(id=payload["user_id"])
-            
-#             if not user.email_validated:
-#                 user.email_validated = True
-#             user.save()
-            
-#             return Response({"message": "Email successfully validated"}, status=status.HTTP_200_OK)
-#         except jwt.ExpiredSignatureError:
-#             return Response({"error": "Activation expired"}, status=status.HTTP_400_BAD_REQUEST)
-#         except jwt.exception.DecodeError:
-#             return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # product views
@@ -192,9 +163,9 @@ class ProductsView(APIView):
             serializer = ProductsSerializer(product)
 
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-        except:
+        except Exception as e:
             return Response(
-                "Required fields not provided!", status=status.HTTP_400_BAD_REQUEST
+                f"Required field(s) {e} not provided!", status=status.HTTP_400_BAD_REQUEST
             )
 
     def delete(self, request, pk=None, *args, **kwargs):

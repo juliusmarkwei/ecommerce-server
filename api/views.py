@@ -37,7 +37,7 @@ class UsersView(APIView):
         return users
 
     def get(self, request, pk=None, *args, **kwargs):
-        print(request.user)
+        # print(request.user)
         if pk:
             try:
                 user = CustomUser.objects.get(pk=pk)
@@ -57,7 +57,7 @@ class UsersView(APIView):
                         
                     except ObjectDoesNotExist:
                         return Response({"error": f"user '{username}' does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-                elif "id" in request.query_params:
+                elif "id" in request.query_params or "pk" in request.query_params:
                     try:
                         user_id = request.query_params["id"]
                         user = CustomUser.objects.get(id=user_id)
@@ -84,7 +84,7 @@ class UsersView(APIView):
                 phone=user_data["phone"],
             )
         except KeyError as e:
-            return Response({"error": f"Provide key(s) {e}"})
+            return Response({"error": f"Provide key(s) {e}"}, status.HTTP_400_BAD_REQUEST)
         
         except IntegrityError as e:
             return Response({"error": f"{e}"})
@@ -101,7 +101,7 @@ class UsersView(APIView):
                 user = CustomUser.objects.get(username=username)
                 user.delete()
 
-                return Response({"message": "User deleted successfully"})
+                return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
             except CustomUser.DoesNotExist:
                 return Response(
                     {"message": f"User '{username}' not found"},
@@ -117,7 +117,7 @@ class ProductsView(APIView):
     # permission_classes = [AllowAny]
 
     def get(self, request, pk=None, *args, **kwargs):
-        print(request.user)
+        # print(request.user)
         if pk:
             try:
                 product = Products.objects.get(pk=pk)
@@ -169,7 +169,7 @@ class ProductsView(APIView):
             )
 
     def delete(self, request, pk=None, *args, **kwargs):
-        print(request.user)
+        # print(request.user)
 
         if pk != None:
             try:
@@ -207,7 +207,7 @@ class CategoriesViews(APIView):
     # permission_classes = [AllowAny]
 
     def get(self, request, pk=None, *args, **kwargs):
-        print(request.user)
+        # print(request.user)
         if pk:
             try:
                 category = Categories.objects.get(id=pk)
@@ -353,7 +353,7 @@ class ReviewView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
-        print(request.user)
+        # print(request.user)
         user_id = CustomUser.objects.get(username=request.user)
         product = Products.objects.get(title=request.data["product"])
 
@@ -389,7 +389,7 @@ class OrdersView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def get(self, request, pk=None, *args, **kwargs):
-        print(request.user)
+        # print(request.user)
         if pk:
             try:
                 order = Orders.objects.get(id=pk)

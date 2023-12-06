@@ -2,6 +2,7 @@ from . import views
 from django.urls import path, re_path, include
 
 app_name = "ecommerce_api"
+
 urlpatterns = [
     path("users/", views.UsersView.as_view(), name="users"),
     re_path("products/(?:(?P<pk>\d+)/)?$", views.ProductsView.as_view(), name="products"),

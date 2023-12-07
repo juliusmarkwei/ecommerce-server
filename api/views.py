@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser, BasePermission
 from src.user.models import CustomUser
 from src.product.models import Products, Categories, Reviews
 from src.cart.models import Carts, CartItems
@@ -20,6 +20,7 @@ from rest_framework import status
 from django.utils.datastructures import MultiValueDictKeyError
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db.utils import IntegrityError
+# from .permissions import HasRequiredPermissionForMethod
 # from rest_framework_simplejwt.tokens import RefreshToken
 # from .utils import Utils
 # from django.contrib.sites.shortcuts import get_current_site
@@ -29,8 +30,22 @@ from django.db.utils import IntegrityError
 
 
 # users views
-class UsersView(APIView):
-    permission_classes = [AllowAny]
+class UsersView(APIView, BasePermission):
+    # permission_classes = [AllowAny]
+    
+    message = "Only admin(s) are allowd to perform this action"
+    
+    def has_permission(self, request, view):
+        if request.method in ["GET"]:
+            user = CustomUser.object.filter(username=request.user)
+            return user.is_superuser == True
+        elif request.method in ["POST"]:
+            return True
+    
+    def has_object_permission(self,  request, view, obj):
+        if request.method in ["DELETE"]:
+            return obj.owner == request.user
+        
 
     def get_queryset(self):
         users = CustomUser.objects.all()
@@ -94,6 +109,7 @@ class UsersView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
+        print(request.user)
         if request.query_params.get("username") != None:
             username = request.query_params.get("username")
             print(username)

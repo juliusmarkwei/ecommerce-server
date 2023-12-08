@@ -20,32 +20,22 @@ from rest_framework import status
 from django.utils.datastructures import MultiValueDictKeyError
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db.utils import IntegrityError
-# from .permissions import HasRequiredPermissionForMethod
-# from rest_framework_simplejwt.tokens import RefreshToken
-# from .utils import Utils
-# from django.contrib.sites.shortcuts import get_current_site
-# from django.urls import reverse
-# import jwt
-# from django.conf import settings
+from .permissions import *
+from rest_framework.exceptions import PermissionDenied
+
 
 
 # users views
-class UsersView(APIView, BasePermission):
+class UsersView(APIView):
     # permission_classes = [AllowAny]
-    
-    message = "Only admin(s) are allowd to perform this action"
-    
-    def has_permission(self, request, view):
-        if request.method in ["GET"]:
-            user = CustomUser.object.filter(username=request.user)
-            return user.is_superuser == True
-        elif request.method in ["POST"]:
-            return True
-    
-    def has_object_permission(self,  request, view, obj):
-        if request.method in ["DELETE"]:
-            return obj.owner == request.user
         
+    # def get_permissions(self):
+    #     if self.request.method == "POST":
+    #         return [AllowPostRequests()]
+    #     elif self.request.method == "GET":
+    #         return [IsAdminUserOrReadOnly()]
+    #     return super().get_permissions()
+
 
     def get_queryset(self):
         users = CustomUser.objects.all()
@@ -109,23 +99,20 @@ class UsersView(APIView, BasePermission):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
-        print(request.user)
-        if request.query_params.get("username") != None:
+        if request.query_params.get("username") is not None:
             username = request.query_params.get("username")
-            print(username)
             try:
                 user = CustomUser.objects.get(username=username)
+                # Manually check for permission
+                # self.check_object_permissions(request, user)
                 user.delete()
-
                 return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
             except CustomUser.DoesNotExist:
-                return Response(
-                    {"message": f"User '{username}' not found"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-        return Response(
-            {"message": "Provide a 'username' parameter to perform deletion"}
-        )
+                return Response({"message": f"User '{username}' not found"}, status=status.HTTP_404_NOT_FOUND)
+            except PermissionDenied:
+                return Response({"message": "You do not have permission to delete this user"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"message": "Provide a 'username' parameter to perform deletion"})
+
 
 
 # product views
@@ -133,7 +120,7 @@ class ProductsView(APIView):
     # permission_classes = [AllowAny]
 
     def get(self, request, pk=None, *args, **kwargs):
-        # print(request.user)
+        print(request.method)
         if pk:
             try:
                 product = Products.objects.get(pk=pk)
@@ -181,7 +168,7 @@ class ProductsView(APIView):
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         except Exception as e:
             return Response(
-                f"Required field(s) {e} not provided!", status=status.HTTP_400_BAD_REQUEST
+                f"{e}", status=status.HTTP_400_BAD_REQUEST
             )
 
     def delete(self, request, pk=None, *args, **kwargs):

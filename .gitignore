@@ -3,3 +3,4 @@ main/settings.py
 .env
 tests/js/node_modules
 .coverage
+.vscode/

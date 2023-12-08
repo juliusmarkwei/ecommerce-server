@@ -1,23 +1,27 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
-
-class HasRequiredPermissionForMethod(permissions.BasePermission):
-    get_permission_required = None
-    put_permission_required = None
-    post_permission_required = None
-
+# Custom Permission Classes
+class AllowPostRequests(BasePermission):
+    """
+    Permission to allow anyone to make POST requests.
+    """
     def has_permission(self, request, view):
-        permission_required_name = f'{request.method.lower()}_permission_required'
-        if not request.user.is_authenticated:
-            return False
-        if not hasattr(view, permission_required_name):
-            view_name = view.__class__.__name__
-            self.message = f'IMPLEMENTATION ERROR: Please add the {permission_required_name} variable in the API view class: {view_name}.'
-            return False
+        return request.method == "POST"
 
-        permission_required = getattr(view, permission_required_name)
-        if not request.user.has_perm(permission_required):
-            self.message = f'Access denied. You need the {permission_required} permission to access this service with {request.method}.'
-            return False
+class IsOwnerOrAdmin(BasePermission):
+    """
+    Allows access only to admin users or the owner of the account for DELETE requests.
+    """
+    def has_object_permission(self, request, view, obj):
+        if request.method == 'DELETE':
+            return obj.username == request.user or request.user.is_superuser
+        return False
 
-        return True
+class IsAdminUserOrReadOnly(BasePermission):
+    """
+    Allows access only to admin users for non-safe methods.
+    """
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        return request.user and request.user.is_superuser

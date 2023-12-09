@@ -17,8 +17,8 @@ class Categories(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
     tags = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now=True)
-    updated_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         # Automatically set the slug based on the name

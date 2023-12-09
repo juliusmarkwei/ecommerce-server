@@ -4,25 +4,39 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 from src.user.models import CustomUser
+from urllib.parse import urlencode
+
 
 
 class TestUser(APITestCase):
     endpoint = "/api/users/"
     client = APIClient()
     
-    url = reverse("ecommerce_api:users")
+    url = reverse("ecommerce_api:users-view")
     
     def test_user_creation(self):
+        dummyUser = CustomUser.objects.create_user(
+            username="dummyuser1",
+            password="dummypass123",
+            first_name="dummy",
+            last_name="dummy",
+            email="dummy@gmail.com",
+            phone="000000000",
+        )
+        dummyUser.is_active = True
+        self.client.login(username=dummyUser.username, password="dummypass123")
+        
         data = {
             "username": "testuser1",
             "first_name": "Corey",
             "last_name": "Lola",
             "email": "ajcah@kacudat.hr",
             "password": "testpass123",
-            "phone": "(763) 491-6091",
+            "phone": "+076304916091",
         }
         
         response = self.client.post(self.url, data, format="json")
+        self.client.logout()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
                 
     
@@ -48,19 +62,18 @@ class TestUser(APITestCase):
             phone="(542) 708-9526",
         )
         
+        testuser1.is_active = True
+        self.client.login(username=testuser1.username, password="test123")
+        response = self.client.get(self.url, kwargs={"username": testuser1.username})
         
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # print(response.data)
-        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)        
         
         response = self.client.get(self.url, kwargs={"id": 2})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # print(response.data)
         
         response = self.client.get(self.url, kwargs={"username": testuser2.username})
+        self.client.logout()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # print(response.data)
         
         
     def test_delete_user(self):
@@ -83,7 +96,11 @@ class TestUser(APITestCase):
             phone="(303) 470-1899",
         )
         
-        response = self.client.delete(self.url, kwargs={"username", testuser2.username})
+        testuser1.is_active = True
+        self.client.login(username=testuser1.username, password="test123")
+        response = self.client.delete(self.url + "?" + urlencode({"username": testuser2.username}), format=None)
+        
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(response.data["message"], "User deleted successfully")
-        print(response.data["message"])
+        self.client.logout()
+        

@@ -165,7 +165,7 @@ class ProductsView(APIView):
             product.save()
             serializer = ProductsSerializer(product)
 
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response(
                 f"{e}", status=status.HTTP_400_BAD_REQUEST
@@ -229,9 +229,7 @@ class CategoriesViews(APIView):
                     serializer = CategoriesSerializer(category)
                     return Response(serializer.data, status=status.HTTP_200_OK)
                 except Categories.DoesNotExist:
-                    return Response(
-                        {"message": f"Category with name '{category_name}' not found."}
-                    )
+                    return Response({"message": f"Category with name '{category_name}' not found."}                    )
             else:
                 return Response(
                     {
@@ -275,16 +273,15 @@ class CategoriesViews(APIView):
                 status=status.HTTP_409_CONFLICT,
             )
 
-        print("----------------saving object into database----------------")
         category.save()
         serializer = CategoriesSerializer(category)
 
-        return Response(
-            {{"message": "Data sent successfully"}, {"data": serializer.data}},
+        return Response(serializer.data,
             status=status.HTTP_201_CREATED,
         )
 
     def delete(self, request, pk=None, *args, **kwargs):
+        category = None
         if pk:
             try:
                 category = Categories.objects.get(id=pk)
@@ -312,7 +309,7 @@ class CategoriesViews(APIView):
 
         category.delete()
         return Response(
-            {"success": "Category item deleted successfully"}, status=status.HTTP_200_OK
+            {"success": "Category item deleted successfully"}, status=status.HTTP_204_NO_CONTENT
         )
 
 

@@ -43,7 +43,7 @@ class UsersView(APIView):
 
     def get(self, request, pk=None, *args, **kwargs):
         # print(request.user)
-        if pk:
+        if pk != None:
             try:
                 user = CustomUser.objects.get(pk=pk)
                 serializer = CustomUserSerializer(user)
@@ -120,8 +120,7 @@ class ProductsView(APIView):
     # permission_classes = [AllowAny]
 
     def get(self, request, pk=None, *args, **kwargs):
-        print(request.method)
-        if pk:
+        if pk != None:
             try:
                 product = Products.objects.get(pk=pk)
                 serializer = ProductsSerializer(product)
@@ -176,9 +175,7 @@ class ProductsView(APIView):
 
         if pk != None:
             try:
-                print("Product about to be queried")
                 product = Products.objects.get(pk=pk)
-                print("Product queried successfully")
             except Products.DoesNotExist:
                 return Response(
                     {"message": f"Product with id {pk} not found"},
@@ -206,21 +203,12 @@ class ProductsView(APIView):
         )
 
 
-class CategoriesViews(APIView):
+class CategoryListViews(APIView):
     # permission_classes = [AllowAny]
 
     def get(self, request, pk=None, *args, **kwargs):
         # print(request.user)
-        if pk:
-            try:
-                category = Categories.objects.get(id=pk)
-                serializer = CategoriesSerializer(category)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except:
-                return Response(
-                    {"message": f"Category with id {pk} not found"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+        
         if request.query_params:
             if "name" in request.query_params:
                 category_name = request.query_params.get("name")
@@ -231,13 +219,7 @@ class CategoriesViews(APIView):
                 except Categories.DoesNotExist:
                     return Response({"message": f"Category with name '{category_name}' not found."}                    )
             else:
-                return Response(
-                    {
-                        "message",
-                        "Provide 'name' as key with a value to query for an item.",
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return Response({"message", "Provide 'name' as key with a value to query for an item."}, status=status.HTTP_400_BAD_REQUEST)
 
         category = Categories.objects.all()
         serializer = CategoriesSerializer(category, many=True)
@@ -248,9 +230,7 @@ class CategoriesViews(APIView):
         category_data = request.data
         try:
             try:
-                parent_category_instance = Categories.objects.get(
-                    id=category_data["parent_category"]
-                )
+                parent_category_instance = Categories.objects.get(id=category_data["parent_category"])
             except (ObjectDoesNotExist, KeyError):
                 parent_category_instance = None
 
@@ -261,57 +241,48 @@ class CategoriesViews(APIView):
                 tags=category_data["tags"],
             )
         except KeyError as e:
-            return Response(
-                {"error": f"Missing field: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except IntegrityError:
-            return Response(
-                {
-                    "error": f"Category name '{category_data['name']}' already exists in the database"
-                },
-                status=status.HTTP_409_CONFLICT,
-            )
+            return Response({"error": f"Missing field: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError as e:
+            return Response({"error": f"{e}"}, status=status.HTTP_409_CONFLICT)
 
         category.save()
         serializer = CategoriesSerializer(category)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def delete(self, request, *args, **kwargs):
+        if "name" in request.query_params:
+            try:
+                category_name = request.query_params.get("name")
+                category = Categories.objects.get(name=category_name)
+            except ObjectDoesNotExist:
+                return Response({"error": f"Invalid category name {category_name}"})
+        else:
+            return Response({"error": f"Provide 'name' as key with a value (Category name) to remove the item."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        category.delete()
+        return Response({"success": "Category item deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
-        return Response(serializer.data,
-            status=status.HTTP_201_CREATED,
-        )
 
+class CategoryDetailView(APIView):
+    def get(self, request, pk=None, *args, **kwargs):
+        try:
+            category = Categories.objects.get(id=pk)
+            serializer = CategoriesSerializer(category)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response({"message": f"Category with id {pk} not found"},status=status.HTTP_404_NOT_FOUND,)
+    
     def delete(self, request, pk=None, *args, **kwargs):
-        category = None
-        if pk:
+        # print(request.user)
+        if pk != None:
             try:
                 category = Categories.objects.get(id=pk)
             except ObjectDoesNotExist:
-                return Response(
-                    {
-                        "error": f"Category item with if {pk} does not exist. Provide a valid 'ID' or a 'name'"
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        elif request.query_params:
-            if "name" in request.query_params:
-                category_name = request.query_params.get("name")
-                try:
-                    category = Categories.objects.get(name=category_name)
-                except ObjectDoesNotExist:
-                    return Response({"error": f"Invalid category name {category_name}"})
-            else:
-                return Response(
-                    {
-                        "error": f"Provide 'name' as key with a value (Category name) to remove the item."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return Response({"error": f"Category item with if {pk} does not exist. Provide a valid 'ID' or a 'name'"}, status=status.HTTP_400_BAD_REQUEST,)
 
         category.delete()
-        return Response(
-            {"success": "Category item deleted successfully"}, status=status.HTTP_204_NO_CONTENT
-        )
-
+        return Response({"success": "Category item deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        
 
 class ReviewView(APIView):
     # permission_classes = [AllowAny]
@@ -381,7 +352,6 @@ class OrdersView(APIView):
     
     def post(self, request, *args, **kwargs):
         username = request.user
-        print(username)
         
         order = Orders.objects.create(user=username)
         order.save()
@@ -587,7 +557,6 @@ class CartItemsView(APIView):
     
     def get(self, request, *args, **kwargs):
         user = request.user
-        print(user)
 
         if request.query_params:
             if "product" in request.query_params:
@@ -599,7 +568,6 @@ class CartItemsView(APIView):
                     return Response({"error": f"Product '{product_name}' not found"}, status=status.HTTP_404_NOT_FOUND)
                 
                 many = cartItem.count() >= 1
-                print(many)
                 serializer = CartItemsSerializer(cartItem, many=many)
                 
                 return Response(serializer.data, status=status.HTTP_200_OK)

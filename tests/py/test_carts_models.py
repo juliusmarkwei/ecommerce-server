@@ -3,11 +3,13 @@
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from django.urls import reverse
+from src.cart.models import Carts, CartItems
 
 
 class TestCart(APITestCase):
-    url = "ecommerce-api:carts"
-    client = APIClient()
+    def setUp(self):
+        self.client = APIClient()
+        
         
     def test_cart_creation(self):
         pass

@@ -70,7 +70,7 @@ class TestProduct(APITestCase):
         )
         
         self.category_data1 = {
-            "name": "test category 1",
+            "name": "test category data",
             "description": "test description",
             "tags": "test1 test2"
         }
@@ -86,9 +86,33 @@ class TestProduct(APITestCase):
             "discount_type": "None",
             "discount_value": 0,
         }
+        
+        self.user1 = CustomUser.objects.create_user(
+            username="testuser10",
+            password="test123",
+            first_name="Martha",
+            last_name="Chapman",
+            email="puderiu@wo.me",
+            phone="+542070809526",
+            
+        )
+        
+        self.review1 = Reviews.objects.create(
+            user=self.user1,
+            product=self.product1,
+            rating="Outstanding",
+            comments="test commets"
+        )
+        
+        self.review_data1 = {
+            "user": self.user1.username,
+            "product": self.product3.title,
+            "rating": "Outstanding",
+            "comments": "test commets"
+        }
     
     def test_product_creation(self):        
-        response = self.client.post(self.product_url, json.dumps(self.product_data1), format="json")
+        response = self.client.post(self.product_url, self.product_data1, format="json")
         try:
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         except AssertionError as e:
@@ -137,17 +161,38 @@ class TestProduct(APITestCase):
         response = self.client.get(category_list_url + "?" + urlencode({"name": "test category 1"}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        category_detail_url = reverse("ecommerce_api:category-detail", kwargs={"pk": 3})
+        category_detail_url = reverse("ecommerce_api:category-detail", kwargs={"pk": self.category3.id})
         response = self.client.get(category_detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     
     def test_delete_a_category(self):
-        print(f"Category 4 id : {self.category4.id}")
         category_list_url = reverse("ecommerce_api:category-list")
-        response = self.client.delete(category_list_url + "?" + urlencode({"name": "test category 3"}))
+        response = self.client.delete(category_list_url + "?" + urlencode({"name": self.category3.name}))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         
-        category_detail_url = reverse("ecommerce_api:category-detail", kwargs={"pk": 4})
+        category_detail_url = reverse("ecommerce_api:category-detail", kwargs={"pk": self.category4.id})
         response = self.client.delete(category_detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        
+    def test_review_creation(self):
+        review_list_url = reverse("ecommerce_api:review")
+        self.client.login(username=self.user1.username, password="test123")
+        response = self.client.post(review_list_url, self.review_data1)
+        self.client.logout()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    
+    
+    def test_get_all_reviews(self):
+        review_url = reverse("ecommerce_api:review")
+        response = self.client.get(review_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    
+    
+    def test_get_a_reviews(self):
+        review_url = reverse("ecommerce_api:review", kwargs={"pk": self.review1.id})
+        response = self.client.get(review_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+    

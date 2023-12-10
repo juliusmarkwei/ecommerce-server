@@ -238,7 +238,7 @@ class CategoryListViews(APIView):
                 parent_category=parent_category_instance,
                 name=category_data["name"],
                 description=category_data["description"],
-                tags=category_data["tags"],
+                tags=category_data["tags"]
             )
         except KeyError as e:
             return Response({"error": f"Missing field: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -288,7 +288,7 @@ class ReviewView(APIView):
     # permission_classes = [AllowAny]
 
     def get(self, request, pk=None, *args, **kwargs):
-        if pk:
+        if pk != None:
             try:
                 review = Reviews.objects.get(id=pk)
             except ObjectDoesNotExist:
@@ -303,17 +303,9 @@ class ReviewView(APIView):
                 try:
                     review = Reviews.objects.get(product=product_name)
                 except ObjectDoesNotExist:
-                    return Response(
-                        {"error": f"Invalid product name '{product_name}'"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+                    return Response({"error": f"Invalid product name '{product_name}'"}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response(
-                    {
-                        "error": f"Provide 'name' as key with a value (Category name) to select a product."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return Response({"error": f"Provide 'name' as key with a value (Category name) to select a product."}, status=status.HTTP_400_BAD_REQUEST)
 
         if pk or request.query_params:
             serializer = ReviewsSerializer(review)
@@ -325,6 +317,9 @@ class ReviewView(APIView):
 
     def post(self, request, *args, **kwargs):
         # print(request.user)
+        if not request.user.is_authenticated:
+            return Response({"error": "You must be logged in to perform this action."}, status=status.HTTP_401_UNAUTHORIZED)
+        
         user_id = CustomUser.objects.get(username=request.user)
         product = Products.objects.get(title=request.data["product"])
 
@@ -364,10 +359,7 @@ class OrdersView(APIView):
             try:
                 order = Orders.objects.get(id=pk)
             except ObjectDoesNotExist:
-                return Response(
-                    {"error": f"You provided an invalid id '{pk}.'"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return Response({"error": f"You provided an invalid id '{pk}.'"}, status=status.HTTP_400_BAD_REQUEST)
 
         elif request.query_params:
             if "username" in request.query_params:
@@ -375,17 +367,9 @@ class OrdersView(APIView):
                 try:
                     order = Orders.objects.get(user=username)
                 except ObjectDoesNotExist:
-                    return Response(
-                        {"error": f"Invalid username name '{username}'"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+                    return Response({"error": f"Invalid username name '{username}'"}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response(
-                    {
-                        "error": f"Provide 'username' as key with a value (user's username) to select a review."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return Response({"error": f"Provide 'username' as key with a value (user's username) to select a review."}, status=status.HTTP_400_BAD_REQUEST)
 
         if pk or request.query_params:
             serializer = ReviewsSerializer(order)
@@ -394,6 +378,29 @@ class OrdersView(APIView):
         orders = Orders.objects.all()
         serializer = OrdersSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def delete(self, request, pk=None, *args, **kwargs):
+        if pk != None:
+            try:
+                order = Orders.objects.get(id=pk)
+            except ObjectDoesNotExist:
+                return Response({"error": f"You provided an invalid id '{pk}.'"}, status=status.HTTP_400_BAD_REQUEST)
+
+        elif request.query_params:
+            if "username" in request.query_params:
+                username = request.query_params.get("username")
+                try:
+                    order = Orders.objects.get(user=username)
+                except ObjectDoesNotExist:
+                    return Response({"error": f"Invalid username name '{username}'"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"error": f"Provide 'username' as key with a value (user's username) to select a review."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if pk or request.query_params:
+            order.delete()
+            return Response({"message": "Order deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+        return Response({"message": "Provide a username od and ID to delete an order"}, status=status.HTTP_200_OK)
 
 
 class OrderLinesView(APIView):
@@ -463,7 +470,7 @@ class OrderLinesView(APIView):
         try:
             orderLine = OrderLines.objects.get(product=product, order=order)
             orderLine.delete()
-            return Response({"message": "Order line deleted successfully"}, status=status.HTTP_200_OK)
+            return Response({"message": "Order line deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         
         except ObjectDoesNotExist:
             return Response({"error": "Order line not found"}, status=status.HTTP_404_NOT_FOUND)

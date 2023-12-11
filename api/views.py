@@ -22,6 +22,8 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db.utils import IntegrityError
 from .permissions import *
 from rest_framework.exceptions import PermissionDenied
+from django.http import HttpResponseForbidden
+
 
 
 
@@ -166,9 +168,7 @@ class ProductsView(APIView):
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response(
-                f"{e}", status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk=None, *args, **kwargs):
         # print(request.user)
@@ -317,10 +317,10 @@ class ReviewView(APIView):
 
     def post(self, request, *args, **kwargs):
         # print(request.user)
-        if not request.user.is_authenticated:
-            return Response({"error": "You must be logged in to perform this action."}, status=status.HTTP_401_UNAUTHORIZED)
+        # if not request.user.is_authenticated:
+        #     return Response({"error": "You must be logged in to perform this action."}, status=status.HTTP_401_UNAUTHORIZED)
         
-        user_id = CustomUser.objects.get(username=request.user)
+        user_id = request.user
         product = Products.objects.get(title=request.data["product"])
 
         review_data = request.data
@@ -342,11 +342,14 @@ class ReviewView(APIView):
 
 
 # order views
-class OrdersView(APIView):
+class OrdersListView(APIView):
     # permission_classes = [AllowAny]
     
     def post(self, request, *args, **kwargs):
         username = request.user
+        
+        if not username.is_authenticated:
+            return HttpResponseForbidden("User is not authenticated")
         
         order = Orders.objects.create(user=username)
         order.save()
@@ -355,54 +358,59 @@ class OrdersView(APIView):
     
     def get(self, request, pk=None, *args, **kwargs):
         # print(request.user)
-        if pk:
-            try:
-                order = Orders.objects.get(id=pk)
-            except ObjectDoesNotExist:
-                return Response({"error": f"You provided an invalid id '{pk}.'"}, status=status.HTTP_400_BAD_REQUEST)
-
-        elif request.query_params:
+        if request.query_params:
             if "username" in request.query_params:
                 username = request.query_params.get("username")
                 try:
                     order = Orders.objects.get(user=username)
+                    serializer = ReviewsSerializer(order)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
                 except ObjectDoesNotExist:
                     return Response({"error": f"Invalid username name '{username}'"}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({"error": f"Provide 'username' as key with a value (user's username) to select a review."}, status=status.HTTP_400_BAD_REQUEST)
-
-        if pk or request.query_params:
-            serializer = ReviewsSerializer(order)
-            return Response(serializer.data, status=status.HTTP_200_OK)
 
         orders = Orders.objects.all()
         serializer = OrdersSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def delete(self, request, pk=None, *args, **kwargs):
-        if pk != None:
-            try:
-                order = Orders.objects.get(id=pk)
-            except ObjectDoesNotExist:
-                return Response({"error": f"You provided an invalid id '{pk}.'"}, status=status.HTTP_400_BAD_REQUEST)
-
-        elif request.query_params:
+        if request.query_params:
             if "username" in request.query_params:
                 username = request.query_params.get("username")
                 try:
                     order = Orders.objects.get(user=username)
+                    order.delete()
+                    return Response({"message": "Order deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
                 except ObjectDoesNotExist:
                     return Response({"error": f"Invalid username name '{username}'"}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({"error": f"Provide 'username' as key with a value (user's username) to select a review."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if pk or request.query_params:
-            order.delete()
-            return Response({"message": "Order deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Provide a username or and ID to delete an order"}, status=status.HTTP_200_OK)
 
-        return Response({"message": "Provide a username od and ID to delete an order"}, status=status.HTTP_200_OK)
+class OrderDetailView(APIView):
+    def get(self):
+         if pk != None:
+            try:
+                order = Orders.objects.get(id=pk)
+                serializer = ReviewsSerializer(order)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except ObjectDoesNotExist:
+                return Response({"error": f"You provided an invalid id '{pk}.'"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk=None, *args, **kwargs):
+        # print(request.user)
+        if pk != None:
+            try:
+                order = Orders.objects.get(id=pk)
+                order.delete()
+                return Response({"success": "Order item deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+            except ObjectDoesNotExist:
+                return Response({"error": f"Order item with if {pk} does not exist. Provide a valid 'ID'"}, status=status.HTTP_400_BAD_REQUEST,)
 
-
+    
+    
 class OrderLinesView(APIView):
     # permission_classes = [AllowAny]
     
@@ -528,7 +536,7 @@ class CartsView(APIView):
         try:
             cart = Carts.objects.get(created_by=user)
             cart.delete()
-            return Response({"message": "Cart deleted successfully"}, status=status.HTTP_200_OK)
+            return Response({"message": "Cart deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except ObjectDoesNotExist:
             return Response({"error": f"User '{user}' has no cart"}, status=status.HTTP_400_BAD_REQUEST)
 

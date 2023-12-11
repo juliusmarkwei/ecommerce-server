@@ -7,7 +7,7 @@ from src.user.models import CustomUser
 from src.product.models import Products, Categories
 from urllib.parse import urlencode
 from rest_framework import status
-from api.serializers import ProductsSerializer, OrdersSerializer, CustomUserSerializer
+from api.serializers import ProductsSerializer, OrdersSerializer, CustomUserSerializer, CategoriesSerializer
 
 
 class TestOrderModels(APITestCase):
@@ -21,16 +21,18 @@ class TestOrderModels(APITestCase):
             email="soj@fi.vn",
             phone="(312) 515-6977",
         )
-        self.user1_data = CustomUserSerializer(self.user1)
-        self.order1 = Orders.objects.create(user=self.user1_data)
+        self.order1 = Orders.objects.create(user=self.user1)
         
-        self.order_data1 = {"user": "Lettie Armstrong"}
+        self.user1_data = CustomUserSerializer(self.user1).data
+        self.order_data1 = {"user": self.user1_data}
         
         self.category1 = Categories.objects.create(
             name="Category 1",
             description="Category 1 description",
             tags="category1 category2",
         )
+        
+        # self.category1_data = CategoriesSerializer(self.category1).data
         
         self.product1 = Products.objects.create(
             category=self.category1,
@@ -53,26 +55,23 @@ class TestOrderModels(APITestCase):
             tags="product1 product2 product3",
         )
         
-        self.product1_data = ProductsSerializer(self.product1)
-        self.product2_data = ProductsSerializer(self.product2)
-        self.order1_data = OrdersSerializer(self.order1)
-        
         self.order_line1 = OrderLines.objects.create(
-            product=self.product1_data,
-            order=self.order1_data,
-            price=self.product1_data.price,
+            product=self.product1,
+            order=self.order1,
+            price=self.product1.price,
             quantity=1
         )
         self.order_line2 = OrderLines.objects.create(
-            product=self.product2_data,
-            order=self.order1_data,
-            price=self.product2_data.price,
+            product=self.product2,
+            order=self.order1,
+            price=self.product2.price,
             quantity=4
         )
         
+        self.product1_data = ProductsSerializer(self.product1).data
         self.order_line_data1 = {
-            "product": "Alienware Laptop",
-            "order": 1,
+            "product": self.product1_data,
+            "order": self.order_data1,
             "price": 5000.00,
             "quantity": 1
         }

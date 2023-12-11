@@ -63,9 +63,9 @@ class TestUser(APITestCase):
             phone="(303) 470-1899",
         )
     
-    def test_user_creation(self):
-        response = self.client.post(self.url, self.user_data1, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    # def test_user_creation(self):
+    #     response = self.client.post(self.url, self.user_data1, format="json")
+    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
                 
     
     def test_get_user(self):

@@ -6,6 +6,9 @@ services:
     build: .
     ports:
       - "8000:8000"
+    command: python3 /code/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
@@ -15,8 +18,11 @@ services:
       - db
 
   db:
-    image: postgres
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: ecommerce
+      - "POSTGRES_HOST_AUTH_METHOD=trust"
+
+volumes:
+  postgres_data:

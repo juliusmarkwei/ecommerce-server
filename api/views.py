@@ -116,8 +116,6 @@ class UsersView(APIView):
         return Response({"message": "Provide a 'username' parameter to perform deletion"})
 
 
-
-# product views
 class ProductsView(APIView):
     # permission_classes = [AllowAny]
 
@@ -341,7 +339,6 @@ class ReviewView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-# order views
 class OrdersListView(APIView):
     # permission_classes = [AllowAny]
     
@@ -389,6 +386,7 @@ class OrdersListView(APIView):
 
         return Response({"message": "Provide a username or and ID to delete an order"}, status=status.HTTP_200_OK)
 
+
 class OrderDetailView(APIView):
     def get(self):
          if pk != None:
@@ -409,7 +407,6 @@ class OrderDetailView(APIView):
             except ObjectDoesNotExist:
                 return Response({"error": f"Order item with if {pk} does not exist. Provide a valid 'ID'"}, status=status.HTTP_400_BAD_REQUEST,)
 
-    
     
 class OrderLinesView(APIView):
     # permission_classes = [AllowAny]
@@ -487,8 +484,6 @@ class OrderLinesView(APIView):
             return Response({"error": "Multiple order lines found (data integrity issue)"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     
-
-# cart views
 class CartsView(APIView):
     # permission_classes = [AllowAny]
     
@@ -507,23 +502,24 @@ class CartsView(APIView):
         serializer = CartsSerializer(cart)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    def get(self, request, *args, **kwargs):
-        user = request.user
-        
+    def get(self, request, *args, **kwargs):        
         if request.query_params:
             if "username" in request.query_params:
+                username = request.query_params.get("username")
                 try:
-                    cart = Carts.objects.filter(created_by=user)
+                    user = CustomUser.objects.get(username=username)
+                    cart = Carts.objects.filter(created_by=user.id)
                 except ObjectDoesNotExist:
-                    return Response({"error": f"User '{user}' has no cart"})
+                    return Response({"error": f"User '{username}' has no cart"})
             
             elif "status" in request.query_params:
+                status_param = request.query_params.get("status")
                 try:
                     cart = Carts.objects.filter(status=request.query_params.get("status"))
                 except ObjectDoesNotExist:
-                    return Response({"error": f"User '{user}' has no cart"}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"error": f"No status '{status_param}' in cart"}, status=status.HTTP_400_BAD_REQUEST)
                 
-            many = cart.count() > 1
+            many = cart.count() == 1
             serializer = CartsSerializer(cart, many=many)
             return Response(serializer.data, status=status.HTTP_200_OK)
         

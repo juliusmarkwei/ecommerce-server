@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  web:
+    image: django-docker:0.0.1
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      DB_NAME: ecommerce
+      DB_USER: admin
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: ecommerce

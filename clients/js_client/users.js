@@ -2,7 +2,7 @@
 
 import axios from 'axios'
 
-const baseURL = 'http://localhost:8000/api'
+export const baseURL = 'http://localhost:8000/'
 const testuser1 = {
     "username": "testuser1",
     "email": "ulooza@wice.pm",
@@ -32,7 +32,7 @@ const testuser3 = {
 }
 
 //  adding user to database
-const user1 = axios.post(baseURL + "/users/", testuser1).then(
+const user1 = axios.post(baseURL + "api/users/", testuser1).then(
     (response) => {console.log(response.status)}
 ).catch((error) => {
     console.error(error)
@@ -40,7 +40,7 @@ const user1 = axios.post(baseURL + "/users/", testuser1).then(
 ).finally(() => console.log("POST request completed!"))
 
 
-const user2 = axios.post(baseURL + "/users/", testuser2).then(
+const user2 = axios.post(baseURL + "api/users/", testuser2).then(
     (response) => {console.log(response.status)}
 ).catch((error) => {
     console.error(error)
@@ -48,7 +48,7 @@ const user2 = axios.post(baseURL + "/users/", testuser2).then(
 ).finally(() => console.log("POST request completed!"))
 
 
-const user3 = axios.post(baseURL + "/users/", testuser3).then(
+const user3 = axios.post(baseURL + "api/users/", testuser3).then(
     (response) => {console.log(response.status)}
 ).catch((error) => {
     console.error(error)
@@ -57,7 +57,7 @@ const user3 = axios.post(baseURL + "/users/", testuser3).then(
 
 
 // delete a user
-axios.delete(baseURL + "/users/" + "?" + "username=Ara.Senger").then(
+axios.delete(baseURL + "api/users/" + "?" + "username=Ara.Senger").then(
     (response) => {
         console.log(response.status)
     }
@@ -68,7 +68,7 @@ axios.delete(baseURL + "/users/" + "?" + "username=Ara.Senger").then(
 ).finally(() => console.log("DELETE request completed!"))
 
 // get a user
-axios.get(baseURL + "/users/").then(
+axios.get(baseURL + "api/users/").then(
     (response) => {
         console.log({"data": response.data.slice(0, 2)})
     }
@@ -77,3 +77,4 @@ axios.get(baseURL + "/users/").then(
         console.error(error)
     }
 ).finally(() => console.log("GET request completed!"))
+

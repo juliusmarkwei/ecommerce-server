@@ -3,9 +3,8 @@ import assert from "assert";
 import status from "statuses";
 
 
-const baseURL = "http://localhost:8000/";
-
-const getUser = async () => {
+const baseURL = 'http://localhost:8000/';
+export const getUser = async () => {
     try {
         const response = await axios.get(baseURL + "api/users/?username=julius");
         return response.data;

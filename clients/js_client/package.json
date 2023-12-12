@@ -1,6 +1,8 @@
 {
   "dependencies": {
-    "axios": "^1.6.2"
+    "assert": "^2.1.0",
+    "axios": "^1.6.2",
+    "statuses": "^2.0.1"
   },
   "type": "module"
 }

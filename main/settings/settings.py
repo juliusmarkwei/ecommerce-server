@@ -15,12 +15,13 @@ import os
 import environ
 
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 env = environ.Env()
 
 # reading .env file
-environ.Env.read_env()
+env.read_env()
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 

@@ -70,7 +70,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(
         validators=[phone_regex], max_length=20, unique=True, blank=True, null=True
     )
-    role = models.CharField(max_length=10, choices=role_options)
+    role = models.CharField(max_length=100, choices=role_options)
     username = models.CharField(_("user name"), max_length=100, unique=True)
     first_name = models.CharField(_("first name"), max_length=100, blank=True)
     last_name = models.CharField(_("last name"), max_length=100, blank=True)

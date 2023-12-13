@@ -2,5 +2,5 @@
 pip install -r ./requirements/development.txt
 
 # make migrations
-python3 manage.py migrate 
-python3 manage.py collectstatic
+python3.9 manage.py migrate 
+python3.9 manage.py collectstatic

@@ -1,7 +1,9 @@
 venv/
 main/settings.py
-.env
 tests/js/node_modules
 .coverage
 .vscode/
 clients/js_client/node_modules/
+main/settings/.env
+main/settings/localdev.py
+main/settings/settings.py

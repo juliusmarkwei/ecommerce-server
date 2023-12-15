@@ -4,7 +4,7 @@
     <img src="./assets/others/django drf logo.png" height=150px width=100% >
 </a>
 
-## A fully functional Django Rest API project build and tested with <a href="https://www.django-rest-framework.org/" target="_blank">restframework</a> and deployed to <a href="https://vercel.com/" target="_blank">vercel</a>
+## A fully functional Ecommerce - Django Rest API project build and tested with <a href="https://www.django-rest-framework.org/" target="_blank">restframework</a> and deployed to <a href="https://vercel.com/" target="_blank">vercel</a>
 
 The project was inspired by a random database schema of an ecommerce website I found on <a href="https://azimutt.app/gallery/e-commerce">Azimutt gallery</a>. Every piece of this project required alot of time and research since it was one of my beginner projects build in django. The activities involved in this project are as follows:
 

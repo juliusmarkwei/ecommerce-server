@@ -1,5 +1,7 @@
 # Ecommerce Backend build with Django Rest Framework
 
+<img src="./assets/others/restframework logo.png">
+
 ## A fully functional Django Rest API project build and tested with <a href="https://www.django-rest-framework.org/" target="_blank">restframework</a> and deployed to <a href="https://vercel.com/">vercel</a>
 
 The project was inspired by a random database schema of an ecommerce website I found on <a href="https://azimutt.app/gallery/e-commerce">Azimutt gallery</a>. Every piece of this project required alot of time and research since it was one of my beginner projects build in django. The activities involved in this project are as follows:

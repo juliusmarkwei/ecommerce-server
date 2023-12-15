@@ -1,11 +1,5 @@
 {
     "version": 2,
-    "rewrites": [
-      {
-        "source": "/(.*)",
-        "destination": "/"
-      }
-    ],
     "builds": [
       {
         "src": "main/wsgi.py",
@@ -18,6 +12,16 @@
         "config": {
           "distDir": "staticfiles_build"
         }
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/(.*)",
+        "destination": "/"
+      },
+      {
+        "source": "/static/(.*)",
+        "destination": "main/wsgi.py"
       }
     ]
   }

@@ -1,6 +1,6 @@
 # Ecommerce Backend build with Django Rest Framework
 
-<img src="./assets/others/restframework logo.png">
+<img src="./assets/others/restframework logo.png" height=150px style="display: block; margin-left: auto; margin-right: auto; width: 50%;">
 
 ## A fully functional Django Rest API project build and tested with <a href="https://www.django-rest-framework.org/" target="_blank">restframework</a> and deployed to <a href="https://vercel.com/">vercel</a>
 

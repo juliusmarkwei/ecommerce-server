@@ -14,14 +14,14 @@
         }
       }
     ],
-    "rewrites": [
+    "routes": [
       {
-        "source": "/(.*)",
-        "destination": "/"
+        "src": "static/(.*)",
+        "dest": "static/$1"
       },
       {
-        "source": "/static/(.*)",
-        "destination": "main/wsgi.py"
+        "src": "/(.*)",
+        "dest": "main/wsgi.py"
       }
     ]
   }

@@ -1,6 +1,7 @@
 # Ecommerce Backend build with Django Rest Framework
+
 <a href="https://www.django-rest-framework.org/" target="_blank">
-    <img src="./assets/others/django drf logo.png" height=150px >
+    <img src="./assets/others/django drf logo.png" height=150px width=100% >
 </a>
 
 ## A fully functional Django Rest API project build and tested with <a href="https://www.django-rest-framework.org/" target="_blank">restframework</a> and deployed to <a href="https://vercel.com/" target="_blank">vercel</a>
@@ -12,7 +13,7 @@ The project was inspired by a random database schema of an ecommerce website I f
 3. Admin panel management configurations.
 4. Adding all the neccesary URL endpoints to for all the various views and thier methods. Not fogetting the admin panel too.
 5. Writing tests for all the views and thier methods. I also used Postman for testing as well.
-5. Including a documentation for the project through a python module called <a href="https://pypi.org/project/openapi3/" target="_blank">drf-yash</a> by <a href="https://www.openapis.org/" target="_blank">OpenAPI Initiative</a>.
+5. Including a <a href="https://ecommerce-backend-4el9fq6v0-julius-markweis-projects.vercel.app/" target="_blank">documentation</a> for the project through a python module called <a href="https://pypi.org/project/openapi3/" target="_blank">drf-yash</a> by <a href="https://www.openapis.org/" target="_blank">OpenAPI Initiative</a>.
 5. Dockerized the Django Rest API whci I was able to successfully run on my local machine.
 6. Deploy the Django REST API to <a href="https://vercel.com/" target="_blank">vercel</a>
 

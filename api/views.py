@@ -1,44 +1,37 @@
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser, BasePermission
-from src.user.models import CustomUser
-from src.product.models import Products, Categories, Reviews
-from src.cart.models import Carts, CartItems
-from src.order.models import Orders, OrderLines
-from rest_framework import generics
-from .serializers import (
-    CustomUserSerializer,
-    ReviewsSerializer,
-    OrdersSerializer,
-    OrderLinesSerializer,
-    CartsSerializer,
-    CartItemsSerializer,
-    CategoriesSerializer,
-    ProductsSerializer,
-)
-from rest_framework.response import Response
-from rest_framework import status
-from django.utils.datastructures import MultiValueDictKeyError
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.db.utils import IntegrityError
-from .permissions import *
-from rest_framework.exceptions import PermissionDenied
-from django.http import HttpResponseForbidden
-
-
+try:
+    from rest_framework.views import APIView
+    from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser, BasePermission
+    from src.user.models import CustomUser
+    from src.product.models import Products, Categories, Reviews
+    from src.cart.models import Carts, CartItems
+    from src.order.models import Orders, OrderLines
+    from rest_framework import generics
+    from .serializers import (
+        CustomUserSerializer,
+        ReviewsSerializer,
+        OrdersSerializer,
+        OrderLinesSerializer,
+        CartsSerializer,
+        CartItemsSerializer,
+        CategoriesSerializer,
+        ProductsSerializer,
+    )
+    from rest_framework.response import Response
+    from rest_framework import status
+    from django.utils.datastructures import MultiValueDictKeyError
+    from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+    from django.db.utils import IntegrityError
+    from .permissions import *
+    from rest_framework.exceptions import PermissionDenied
+    from django.http import HttpResponseForbidden
+except ImportError:
+    print("Error in one of the imports!")
 
 
 # users views
 class UsersView(APIView):
     # permission_classes = [AllowAny]
-        
-    # def get_permissions(self):
-    #     if self.request.method == "POST":
-    #         return [AllowPostRequests()]
-    #     elif self.request.method == "GET":
-    #         return [IsAdminUserOrReadOnly()]
-    #     return super().get_permissions()
-
-
+    
     def get_queryset(self):
         users = CustomUser.objects.all()
         return users

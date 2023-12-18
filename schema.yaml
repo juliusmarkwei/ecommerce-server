@@ -1,0 +1,783 @@
+openapi: 3.0.3
+info:
+  title: ECOMMERCE BACKEND API
+  version: 1.0.0
+  description: The backend of an ecommerce site with various funtionalities
+paths:
+  /api/cart-items/:
+    get:
+      operationId: api_cart_items_retrieve
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartItems'
+          description: ''
+    post:
+      operationId: api_cart_items_create
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartItems'
+          description: ''
+  /api/carts/:
+    get:
+      operationId: api_carts_retrieve
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Carts'
+          description: ''
+    post:
+      operationId: api_carts_create
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Carts'
+          description: ''
+    delete:
+      operationId: api_carts_destroy
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/order-lines/:
+    get:
+      operationId: api_order_lines_retrieve
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderLines'
+          description: ''
+    post:
+      operationId: api_order_lines_create
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderLines'
+          description: ''
+    delete:
+      operationId: api_order_lines_destroy
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/orders/:
+    get:
+      operationId: api_orders_retrieve
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Orders'
+          description: ''
+    post:
+      operationId: api_orders_create
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Orders'
+          description: ''
+    delete:
+      operationId: api_orders_destroy
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/orders/{id}/:
+    get:
+      operationId: api_orders_retrieve_2
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reviews'
+          description: ''
+    delete:
+      operationId: api_orders_destroy_2
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/products/:
+    get:
+      operationId: api_products_retrieve
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Products'
+          description: ''
+    post:
+      operationId: api_products_create
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Products'
+          description: ''
+    delete:
+      operationId: api_products_destroy
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/products/categories:
+    get:
+      operationId: api_products_categories_retrieve
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Categories'
+          description: ''
+    post:
+      operationId: api_products_categories_create
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Categories'
+          description: ''
+    delete:
+      operationId: api_products_categories_destroy
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/products/categories/{id}/:
+    get:
+      operationId: api_products_categories_retrieve_2
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Categories'
+          description: ''
+    delete:
+      operationId: api_products_categories_destroy_2
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/products/reviews/:
+    get:
+      operationId: api_products_reviews_retrieve
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reviews'
+          description: ''
+    post:
+      operationId: api_products_reviews_create
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reviews'
+          description: ''
+  /api/token/:
+    post:
+      operationId: api_token_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/token/refresh/:
+    post:
+      operationId: api_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/users/:
+    get:
+      operationId: api_users_retrieve
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUser'
+          description: ''
+    post:
+      operationId: api_users_create
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUser'
+          description: ''
+    delete:
+      operationId: api_users_destroy
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    CartItems:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        product_id:
+          type: string
+          title: Product
+        cart_id:
+          type: integer
+          title: Cart
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - cart_id
+      - created_at
+      - id
+      - product_id
+    Carts:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        created_by:
+          type: integer
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - created_by
+      - id
+      - status
+      - updated_at
+    Categories:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        parent_category:
+          type: integer
+          nullable: true
+        slug:
+          type: string
+          nullable: true
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        tags:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - created_at
+      - id
+      - name
+      - updated_at
+    CustomUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 100
+        phone:
+          type: string
+          nullable: true
+          pattern: ^\+?1?\d{9,12}$
+          maxLength: 20
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        username:
+          type: string
+          title: User name
+          maxLength: 100
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+        avatar:
+          type: string
+          format: uri
+          title: Profile picture
+        locale:
+          allOf:
+          - $ref: '#/components/schemas/LocaleEnum'
+          title: Locale setting
+        bio:
+          type: string
+          maxLength: 200
+        company:
+          type: string
+          maxLength: 200
+      required:
+      - email
+      - id
+      - locale
+      - role
+      - username
+    DiscountTypeEnum:
+      enum:
+      - none
+      - percent
+      - amount
+      - currency
+      type: string
+      description: |-
+        * `none` - None
+        * `percent` - Percent
+        * `amount` - Amount
+        * `currency` - Currency
+    LocaleEnum:
+      enum:
+      - en
+      - fr
+      - ru
+      - ko
+      - zh
+      - ha
+      type: string
+      description: |-
+        * `en` - English
+        * `fr` - French
+        * `ru` - Russian
+        * `ko` - Korean
+        * `zh` - Chinese
+        * `ha` - Hauza
+    OrderLines:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        order:
+          type: string
+          title: User name
+        product:
+          type: string
+          title: Product title
+        price:
+          type: number
+          format: double
+          title: Product price (GH)
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+      required:
+      - id
+      - order
+      - product
+    Orders:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: string
+          title: User_id
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - user
+    Products:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        category:
+          type: integer
+          title: Category_id
+        title:
+          type: string
+          title: Product title
+          maxLength: 200
+        picture:
+          type: string
+          format: uri
+          nullable: true
+          title: Image of product
+        summary:
+          type: string
+          title: Product summary
+          maxLength: 200
+        description:
+          type: string
+          title: Product description
+          maxLength: 200
+        price:
+          type: number
+          format: double
+          title: Product price (GH)
+        discount_type:
+          $ref: '#/components/schemas/DiscountTypeEnum'
+        discount_value:
+          type: number
+          format: double
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - category
+      - created_at
+      - description
+      - id
+      - summary
+      - title
+      - updated_at
+    RatingEnum:
+      enum:
+      - poor
+      - unsatisfactory
+      - satisfactory
+      - very satisfactory
+      - outstanding
+      type: string
+      description: |-
+        * `poor` - Poor
+        * `unsatisfactory` - Unsatisfactory
+        * `satisfactory` - Satisfactory
+        * `very satisfactory` - Very Satisfactory
+        * `outstanding` - Outstanding
+    Reviews:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_id:
+          type: integer
+          readOnly: true
+        product:
+          type: string
+          title: Product title
+        rating:
+          $ref: '#/components/schemas/RatingEnum'
+        comments:
+          type: string
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - product
+      - rating
+      - user_id
+    RoleEnum:
+      enum:
+      - admin
+      - staff
+      - customer
+      type: string
+      description: |-
+        * `admin` - Admin
+        * `staff` - Staff
+        * `customer` - Customer
+    StatusEnum:
+      enum:
+      - active
+      - ordered
+      - pending
+      - abandoned
+      type: string
+      description: |-
+        * `active` - Active
+        * `ordered` - Ordered
+        * `pending` - Pending
+        * `abandoned` - Abandoned
+    TokenObtainPair:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - password
+      - refresh
+      - username
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

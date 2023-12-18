@@ -16,7 +16,7 @@ schema_view = swagger_get_schema_view(
     openapi.Info(
         title="Ecommerce API",
         default_version="v1",
-        description="A fully functional Ecommerce - Django Rest API project build and tested with restframework and deployed to vercel",
+        description="A fully functional Ecommerce - Django Rest API project build and tested with restframework",
         terms_of_service="https://www.google.com/policies/terms/",
         license=openapi.License(name="BSD License"),
     ),

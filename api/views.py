@@ -21,22 +21,27 @@ try:
     from django.utils.datastructures import MultiValueDictKeyError
     from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
     from django.db.utils import IntegrityError
-    from .permissions import *
+    from .permissions import IsPostOrIsAuthenticated
     from rest_framework.exceptions import PermissionDenied
     from django.http import HttpResponseForbidden
+    from drf_spectacular.utils import extend_schema
 except ImportError:
     print("Error in one of the imports!")
 
 
 # users views
 class UsersView(APIView):
-    # permission_classes = [AllowAny]
+    permission_classes = [IsPostOrIsAuthenticated]
     
     def get_queryset(self):
         users = CustomUser.objects.all()
         return users
 
+    @extend_schema(responses=CustomUserSerializer, request=None)
     def get(self, request, pk=None, *args, **kwargs):
+        """
+            Get a list of users or a single user by providing the user's 'id' or 'username' as a query parameter
+        """
         # print(request.user)
         if pk != None:
             try:
@@ -72,7 +77,11 @@ class UsersView(APIView):
         serializer = CustomUserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses=CustomUserSerializer, request=None)
     def post(self, request, *args, **kwargs):
+        """
+            Create a new user. This action doesn't require authentication
+        """
         user_data = request.data
         try:
             user = CustomUser.objects.create_user(
@@ -94,6 +103,9 @@ class UsersView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
+        """
+            Delete a user by providing the user's 'username' as a query parameter
+        """
         if request.query_params.get("username") is not None:
             username = request.query_params.get("username")
             try:
@@ -112,7 +124,11 @@ class UsersView(APIView):
 class ProductsView(APIView):
     # permission_classes = [AllowAny]
 
+    @extend_schema(responses=ProductsSerializer, request=None)
     def get(self, request, pk=None, *args, **kwargs):
+        """
+            Get a list of products or a single product by providing the product's 'id' or 'title' as a query parameter
+        """
         if pk != None:
             try:
                 product = Products.objects.get(pk=pk)
@@ -136,7 +152,11 @@ class ProductsView(APIView):
 
                 return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses=ProductsSerializer, request=None)
     def post(self, request, *args, **kwargs):
+        """
+            Create a new product. This action requires authentication
+        """
         product_data = request.data
 
         try:
@@ -162,6 +182,9 @@ class ProductsView(APIView):
             return Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk=None, *args, **kwargs):
+        """
+            Delete a product by providing the product's 'id' or 'title' as a query parameter
+        """
         # print(request.user)
 
         if pk != None:
@@ -197,7 +220,11 @@ class ProductsView(APIView):
 class CategoryListViews(APIView):
     # permission_classes = [AllowAny]
 
+    @extend_schema(responses=CategoriesSerializer, request=None)
     def get(self, request, pk=None, *args, **kwargs):
+        """
+            Get a list of categories or a single category by providing the category's 'id'
+        """
         # print(request.user)
         
         if request.query_params:
@@ -217,7 +244,11 @@ class CategoryListViews(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses=CategoriesSerializer, request=None)
     def post(self, request, *args, **kwargs):
+        """
+            Create a new category. This action requires authentication
+        """
         category_data = request.data
         try:
             try:
@@ -241,6 +272,9 @@ class CategoryListViews(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def delete(self, request, *args, **kwargs):
+        """
+            Delete a category by providing the category's 'name' as a query parameter
+        """
         if "name" in request.query_params:
             try:
                 category_name = request.query_params.get("name")
@@ -255,7 +289,11 @@ class CategoryListViews(APIView):
 
 
 class CategoryDetailView(APIView):
+    @extend_schema(responses=CategoriesSerializer, request=None)
     def get(self, request, pk=None, *args, **kwargs):
+        """
+            Get a single category by providing the category's 'id'
+        """
         try:
             category = Categories.objects.get(id=pk)
             serializer = CategoriesSerializer(category)
@@ -264,7 +302,9 @@ class CategoryDetailView(APIView):
             return Response({"message": f"Category with id {pk} not found"},status=status.HTTP_404_NOT_FOUND,)
     
     def delete(self, request, pk=None, *args, **kwargs):
-        # print(request.user)
+        """
+            Delete a category by providing the category's 'id'
+        """
         if pk != None:
             try:
                 category = Categories.objects.get(id=pk)
@@ -278,7 +318,11 @@ class CategoryDetailView(APIView):
 class ReviewView(APIView):
     # permission_classes = [AllowAny]
 
+    @extend_schema(responses=ReviewsSerializer, request=None)
     def get(self, request, pk=None, *args, **kwargs):
+        """
+            Get a list of reviews or a single review by providing the review's 'id' or 'product' as a query parameter
+        """
         if pk != None:
             try:
                 review = Reviews.objects.get(id=pk)
@@ -306,11 +350,11 @@ class ReviewView(APIView):
         serializer = ReviewsSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(responses=ReviewsSerializer, request=None)
     def post(self, request, *args, **kwargs):
-        # print(request.user)
-        # if not request.user.is_authenticated:
-        #     return Response({"error": "You must be logged in to perform this action."}, status=status.HTTP_401_UNAUTHORIZED)
-        
+        """
+            Create a new review. This action requires authentication
+        """        
         user_id = request.user
         product = Products.objects.get(title=request.data["product"])
 
@@ -335,7 +379,11 @@ class ReviewView(APIView):
 class OrdersListView(APIView):
     # permission_classes = [AllowAny]
     
+    @extend_schema(responses=OrdersSerializer, request=None)
     def post(self, request, *args, **kwargs):
+        """
+            Create a new order. This action requires authentication
+        """
         username = request.user
         
         if not username.is_authenticated:
@@ -346,8 +394,11 @@ class OrdersListView(APIView):
         serializer = OrdersSerializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+    @extend_schema(responses=OrdersSerializer, request=None)
     def get(self, request, pk=None, *args, **kwargs):
-        # print(request.user)
+        """
+            Get a list of orders or a single order by providing the  owner's'username' as a query parameter
+        """
         if request.query_params:
             if "username" in request.query_params:
                 username = request.query_params.get("username")
@@ -365,6 +416,10 @@ class OrdersListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def delete(self, request, pk=None, *args, **kwargs):
+        """
+            Delete an order by providing the owner's 'username' as a query parameter
+        """
+        
         if request.query_params:
             if "username" in request.query_params:
                 username = request.query_params.get("username")
@@ -381,8 +436,12 @@ class OrdersListView(APIView):
 
 
 class OrderDetailView(APIView):
-    def get(self):
-         if pk != None:
+    @extend_schema(responses=ReviewsSerializer, request=None)
+    def get(self, pk=None):
+        """
+            List or retireve an Order by providing the id of the associated Order
+        """
+        if pk != None:
             try:
                 order = Orders.objects.get(id=pk)
                 serializer = ReviewsSerializer(order)
@@ -391,7 +450,10 @@ class OrderDetailView(APIView):
                 return Response({"error": f"You provided an invalid id '{pk}.'"}, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, pk=None, *args, **kwargs):
-        # print(request.user)
+        """
+            Delete an order by providing the id associiiiated with the Order
+        """
+        
         if pk != None:
             try:
                 order = Orders.objects.get(id=pk)
@@ -404,7 +466,12 @@ class OrderDetailView(APIView):
 class OrderLinesView(APIView):
     # permission_classes = [AllowAny]
     
+    @extend_schema(responses=OrderLinesSerializer, request=None)
     def post(self, request, *args, **kwargs):
+        """
+            Added an item to you Order
+        """
+        
         try:
             order = Orders.objects.get(user=request.user)
         except ObjectDoesNotExist:
@@ -432,8 +499,12 @@ class OrderLinesView(APIView):
         serializer = OrderLinesSerializer(orderLine)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    
+    @extend_schema(responses=OrderLinesSerializer, request=None)
     def get(self, request, *args, **kwargs):
+        """
+            List or retrieve an Order Item (Line) 
+        """
+        
         if request.query_params:
             if "product" in request.query_params:
                 product_name = request.query_params['product']
@@ -462,6 +533,9 @@ class OrderLinesView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         
     def delete(self, request, format=None):
+        """
+            Remove an Order Item (Line) by providing the product & order associated with the Order Item
+        """
         product = request.data["product"]
         order = request.data["order"]
         
@@ -480,7 +554,11 @@ class OrderLinesView(APIView):
 class CartsView(APIView):
     # permission_classes = [AllowAny]
     
+    @extend_schema(responses=CartsSerializer, request=None)
     def post(self, request, *args, **kwargs):
+        """
+            Create a cart for a user. This must be created before the user can create or add cart items
+        """
         created_by = request.user
         try:
             cart = Carts.objects.create(
@@ -495,7 +573,11 @@ class CartsView(APIView):
         serializer = CartsSerializer(cart)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    def get(self, request, *args, **kwargs):        
+    @extend_schema(responses=CartsSerializer, request=None)
+    def get(self, request, *args, **kwargs):
+        """
+            List or retrieve a cart by providing the owner's 'username' or the status of the Order Item
+        """
         if request.query_params:
             if "username" in request.query_params:
                 username = request.query_params.get("username")
@@ -521,6 +603,9 @@ class CartsView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
             
     def delete(self, request, *args, **kwargs):
+        """
+            Remove a Cart by specifying the owner of the cart
+        """
         user = request.user
         try:
             cart = Carts.objects.get(created_by=user)
@@ -533,7 +618,12 @@ class CartsView(APIView):
 class CartItemsView(APIView):
     # permission_classes = [AllowAny]
     
+    @extend_schema(responses=CartItemsSerializer, request=None)
     def post(self, request, *args, **kwargs):
+        """
+            Create a Cart Item.
+        """
+        
         user = request.user
         try:
             cart_id = Carts.objects.get(created_by=user)
@@ -559,7 +649,12 @@ class CartItemsView(APIView):
         serializer = CartItemsSerializer(cartItem)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+    @extend_schema(responses=CartItemsSerializer, request=None)
     def get(self, request, *args, **kwargs):
+        """
+            List or retrieve a Cart Item
+        """
+        
         user = request.user
 
         if request.query_params:

@@ -1,2 +1,2 @@
-# from .settings import *
-from .localdev import *
+from .settings import *
+# from .localdev import *

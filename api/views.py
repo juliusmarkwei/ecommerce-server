@@ -80,6 +80,11 @@ class UsersView(APIView):
         serializer = CustomUserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    
+    user_response = openapi.Response('response description', CustomUserSerializer)
+    @swagger_auto_schema(
+        summary="Create a user to perfomr all actions!", request_body=CustomUserSerializer(many=True), responses={204: user_response}
+    )
     def post(self, request, *args, **kwargs):
         """
             Create a new user. This action doesn't require authentication

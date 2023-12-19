@@ -24,7 +24,8 @@ try:
     from .permissions import IsPostOrIsAuthenticated
     from rest_framework.exceptions import PermissionDenied
     from django.http import HttpResponseForbidden
-    from drf_spectacular.utils import extend_schema
+    from drf_yasg.utils import swagger_auto_schema
+    from drf_yasg import openapi
 except ImportError:
     print("Error in one of the imports!")
 
@@ -37,7 +38,9 @@ class UsersView(APIView):
         users = CustomUser.objects.all()
         return users
 
-    @extend_schema(responses=CustomUserSerializer, request=None)
+    @swagger_auto_schema(
+        operation_id="Create a Cart Item", responses={200: CustomUserSerializer(many=True)}
+    )
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a list of users or a single user by providing the user's 'id' or 'username' as a query parameter
@@ -77,7 +80,6 @@ class UsersView(APIView):
         serializer = CustomUserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses=CustomUserSerializer, request=None)
     def post(self, request, *args, **kwargs):
         """
             Create a new user. This action doesn't require authentication
@@ -124,7 +126,9 @@ class UsersView(APIView):
 class ProductsView(APIView):
     # permission_classes = [AllowAny]
 
-    @extend_schema(responses=ProductsSerializer, request=None)
+    @swagger_auto_schema(
+        operation_id="Create a Cart Item", responses={200: ProductsSerializer(many=True)}
+    )
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a list of products or a single product by providing the product's 'id' or 'title' as a query parameter
@@ -152,7 +156,6 @@ class ProductsView(APIView):
 
                 return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses=ProductsSerializer, request=None)
     def post(self, request, *args, **kwargs):
         """
             Create a new product. This action requires authentication
@@ -220,7 +223,9 @@ class ProductsView(APIView):
 class CategoryListViews(APIView):
     # permission_classes = [AllowAny]
 
-    @extend_schema(responses=CategoriesSerializer, request=None)
+    @swagger_auto_schema(
+        operation_id="List or retirve a product Category", responses={200: CategoriesSerializer(many=True)}
+    )
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a list of categories or a single category by providing the category's 'id'
@@ -244,7 +249,6 @@ class CategoryListViews(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses=CategoriesSerializer, request=None)
     def post(self, request, *args, **kwargs):
         """
             Create a new category. This action requires authentication
@@ -289,7 +293,9 @@ class CategoryListViews(APIView):
 
 
 class CategoryDetailView(APIView):
-    @extend_schema(responses=CategoriesSerializer, request=None)
+    @swagger_auto_schema(
+        operation_id="Retireve a user Category", responses={200: CategoriesSerializer(many=True)}
+    )
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a single category by providing the category's 'id'
@@ -317,8 +323,9 @@ class CategoryDetailView(APIView):
 
 class ReviewView(APIView):
     # permission_classes = [AllowAny]
-
-    @extend_schema(responses=ReviewsSerializer, request=None)
+    @swagger_auto_schema(
+        operation_id="List or retrieve a user Review", responses={200: ReviewsSerializer(many=True)}
+    )
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a list of reviews or a single review by providing the review's 'id' or 'product' as a query parameter
@@ -350,7 +357,6 @@ class ReviewView(APIView):
         serializer = ReviewsSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(responses=ReviewsSerializer, request=None)
     def post(self, request, *args, **kwargs):
         """
             Create a new review. This action requires authentication
@@ -379,7 +385,6 @@ class ReviewView(APIView):
 class OrdersListView(APIView):
     # permission_classes = [AllowAny]
     
-    @extend_schema(responses=OrdersSerializer, request=None)
     def post(self, request, *args, **kwargs):
         """
             Create a new order. This action requires authentication
@@ -394,7 +399,6 @@ class OrdersListView(APIView):
         serializer = OrdersSerializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    @extend_schema(responses=OrdersSerializer, request=None)
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a list of orders or a single order by providing the  owner's'username' as a query parameter
@@ -436,7 +440,7 @@ class OrdersListView(APIView):
 
 
 class OrderDetailView(APIView):
-    @extend_schema(responses=ReviewsSerializer, request=None)
+    
     def get(self, pk=None):
         """
             List or retireve an Order by providing the id of the associated Order
@@ -466,7 +470,6 @@ class OrderDetailView(APIView):
 class OrderLinesView(APIView):
     # permission_classes = [AllowAny]
     
-    @extend_schema(responses=OrderLinesSerializer, request=None)
     def post(self, request, *args, **kwargs):
         """
             Added an item to you Order
@@ -499,7 +502,6 @@ class OrderLinesView(APIView):
         serializer = OrderLinesSerializer(orderLine)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @extend_schema(responses=OrderLinesSerializer, request=None)
     def get(self, request, *args, **kwargs):
         """
             List or retrieve an Order Item (Line) 
@@ -554,7 +556,10 @@ class OrderLinesView(APIView):
 class CartsView(APIView):
     # permission_classes = [AllowAny]
     
-    @extend_schema(responses=CartsSerializer, request=None)
+    user_response = openapi.Response('response description', CartsSerializer)
+    @swagger_auto_schema(
+        summary="Create a Cart for a user", request_body=CartsSerializer(many=True), responses={204: user_response}
+    )
     def post(self, request, *args, **kwargs):
         """
             Create a cart for a user. This must be created before the user can create or add cart items
@@ -573,7 +578,16 @@ class CartsView(APIView):
         serializer = CartsSerializer(cart)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    @extend_schema(responses=CartsSerializer, request=None)
+    
+    username= openapi.Parameter(
+        'Username', openapi.IN_QUERY, description="Retrieve Cart by username", required=True, type=openapi.TYPE_STRING,
+    )
+    status= openapi.Parameter(
+        'Status', openapi.IN_QUERY, description="Retrieve Cart by it's status", required=True, type=openapi.TYPE_STRING,
+    )
+    @swagger_auto_schema(
+        summary="List or retrieve all Cart Item",responses={200: user_response}, manual_parameters=[username,status]
+    )
     def get(self, request, *args, **kwargs):
         """
             List or retrieve a cart by providing the owner's 'username' or the status of the Order Item
@@ -601,7 +615,9 @@ class CartsView(APIView):
         carts = Carts.objects.all()
         serializer = CartsSerializer(carts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-            
+    
+    
+    
     def delete(self, request, *args, **kwargs):
         """
             Remove a Cart by specifying the owner of the cart
@@ -615,10 +631,15 @@ class CartsView(APIView):
             return Response({"error": f"User '{user}' has no cart"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class CartItemsView(APIView):
-    # permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     
-    @extend_schema(responses=CartItemsSerializer, request=None)
+    user_response = openapi.Response('response description', CartItemsSerializer)
+    @swagger_auto_schema(
+        request_body=CartItemsSerializer(many=True), summary="Create a Cart Item",
+        responses={201: user_response}
+    )
     def post(self, request, *args, **kwargs):
         """
             Create a Cart Item.
@@ -649,7 +670,11 @@ class CartItemsView(APIView):
         serializer = CartItemsSerializer(cartItem)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    @extend_schema(responses=CartItemsSerializer, request=None)
+    
+    product_param = openapi.Parameter('product title', openapi.IN_QUERY, description="Retrieve Cart by the product title", type=openapi.TYPE_STRING)
+    @swagger_auto_schema(
+        summary="List or retrieve all Cart Item",responses={200: user_response}, manual_parameters=[product_param]
+    )
     def get(self, request, *args, **kwargs):
         """
             List or retrieve a Cart Item

@@ -38,14 +38,15 @@ class UsersView(APIView):
         users = CustomUser.objects.all()
         return users
 
+    username_param = openapi.Parameter('Username', openapi.IN_QUERY, description="Retrieve User by username", type=openapi.TYPE_STRING)
+    user_response = openapi.Response('response description', CustomUserSerializer)
     @swagger_auto_schema(
-        operation_id="Create a Cart Item", responses={200: CustomUserSerializer(many=True)}
+        operation_id="Create a Cart Item", responses={200: user_response}, manual_parameters=[username_param]
     )
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a list of users or a single user by providing the user's 'id' or 'username' as a query parameter
         """
-        # print(request.user)
         if pk != None:
             try:
                 user = CustomUser.objects.get(pk=pk)
@@ -57,24 +58,26 @@ class UsersView(APIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
         else:
+            
             if request.query_params:
                 if "username" in request.query_params:
+                    print("reporting from request if else block")
                     try:
                         username = request.query_params["username"]
                         user = CustomUser.objects.get(username=username)
-                        
+                        serializer = CustomUserSerializer(user)
+                        return Response(serializer.data, status=status.HTTP_200_OK)
                     except ObjectDoesNotExist:
                         return Response({"error": f"user '{username}' does not exist"}, status=status.HTTP_400_BAD_REQUEST)
                 elif "id" in request.query_params or "pk" in request.query_params:
                     try:
                         user_id = request.query_params["id"]
                         user = CustomUser.objects.get(id=user_id)
+                        serializer = CustomUserSerializer(user)
+                        return Response(serializer.data, status=status.HTTP_200_OK)
                         
                     except ObjectDoesNotExist:
                         return Response({"error": f"User ID '{user_id}' does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-                    
-                serializer = CustomUserSerializer(user)
-                return Response(serializer.data, status=status.HTTP_200_OK)
         
         users = CustomUser.objects.all()
         serializer = CustomUserSerializer(users, many=True)

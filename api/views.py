@@ -15,6 +15,7 @@ try:
         CartItemsSerializer,
         CategoriesSerializer,
         ProductsSerializer,
+        CartStatusSerializer
     )
     from rest_framework.response import Response
     from rest_framework import status
@@ -30,7 +31,7 @@ except ImportError:
     print("Error in one of the imports!")
 
 
-# users views
+
 class UsersListView(APIView):
     permission_classes = [IsPostOrIsAuthenticated]
     
@@ -133,7 +134,7 @@ class UsersDetailView(APIView):
 class ProductsListView(APIView):
     # permission_classes = [AllowAny]
     def get_queryset(self):
-        products = Product.objects.all()
+        products = Products.objects.all()
         return products
     
     title_param = openapi.Parameter("title", openapi.IN_QUERY, description="title of the product", type=openapi.TYPE_STRING)
@@ -317,6 +318,7 @@ class CategoryListViews(APIView):
         return Response({"success": "Category item deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 
+
 class CategoryDetailView(APIView):
     @swagger_auto_schema(
         operation_id="Retireve a user Category", responses={200: CategoriesSerializer(many=True)}
@@ -345,6 +347,7 @@ class CategoryDetailView(APIView):
         category.delete()
         return Response({"success": "Category item deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         
+
 
 class ReviewView(APIView):
     # permission_classes = [AllowAny]
@@ -407,6 +410,7 @@ class ReviewView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+
 class OrdersListView(APIView):
     # permission_classes = [AllowAny]
     
@@ -464,6 +468,7 @@ class OrdersListView(APIView):
         return Response({"message": "Provide a username or and ID to delete an order"}, status=status.HTTP_200_OK)
 
 
+
 class OrderDetailView(APIView):
     
     def get(self, pk=None):
@@ -490,6 +495,7 @@ class OrderDetailView(APIView):
                 return Response({"success": "Order item deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
             except ObjectDoesNotExist:
                 return Response({"error": f"Order item with if {pk} does not exist. Provide a valid 'ID'"}, status=status.HTTP_400_BAD_REQUEST,)
+
 
     
 class OrderLinesView(APIView):
@@ -578,13 +584,12 @@ class OrderLinesView(APIView):
             return Response({"error": "Multiple order lines found (data integrity issue)"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     
+    
 class CartsView(APIView):
     # permission_classes = [AllowAny]
     
     user_response = openapi.Response('response description', CartsSerializer)
-    @swagger_auto_schema(
-        summary="Create a Cart for a user", request_body=CartsSerializer(many=True), responses={204: user_response}
-    )
+    @swagger_auto_schema(summary="Create a Cart for a user", request_body=CartStatusSerializer, responses={204: user_response})
     def post(self, request, *args, **kwargs):
         """
             Create a cart for a user. This must be created before the user can create or add cart items
@@ -604,22 +609,16 @@ class CartsView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     
-    username= openapi.Parameter(
-        'Username', openapi.IN_QUERY, description="Retrieve Cart by username", required=True, type=openapi.TYPE_STRING,
-    )
-    status= openapi.Parameter(
-        'Status', openapi.IN_QUERY, description="Retrieve Cart by it's status", required=True, type=openapi.TYPE_STRING,
-    )
-    @swagger_auto_schema(
-        summary="List or retrieve all Cart Item",responses={200: user_response}, manual_parameters=[username,status]
-    )
+    username= openapi.Parameter('owner', openapi.IN_QUERY, description="Retrieve Cart by username", required=True, type=openapi.TYPE_STRING)
+    status= openapi.Parameter('status', openapi.IN_QUERY, description="Retrieve Cart by it's status", required=True, type=openapi.TYPE_STRING)
+    @swagger_auto_schema(summary="List or retrieve all Cart Items: <owner | status>",responses={200: user_response}, manual_parameters=[username,status])
     def get(self, request, *args, **kwargs):
         """
             List or retrieve a cart by providing the owner's 'username' or the status of the Order Item
         """
         if request.query_params:
-            if "username" in request.query_params:
-                username = request.query_params.get("username")
+            if "owner" in request.query_params:
+                username = request.query_params.get("owner")
                 try:
                     user = CustomUser.objects.get(username=username)
                     cart = Carts.objects.filter(created_by=user.id)

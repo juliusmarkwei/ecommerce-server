@@ -25,66 +25,41 @@ try:
     from rest_framework.exceptions import PermissionDenied
     from django.http import HttpResponseForbidden
     from drf_yasg.utils import swagger_auto_schema
-    from drf_yasg import openapi
+    from drf_yasg import openapi, generators
 except ImportError:
     print("Error in one of the imports!")
 
 
 # users views
-class UsersView(APIView):
+class UsersListView(APIView):
     permission_classes = [IsPostOrIsAuthenticated]
     
     def get_queryset(self):
         users = CustomUser.objects.all()
         return users
-
-    username_param = openapi.Parameter('Username', openapi.IN_QUERY, description="Retrieve User by username", type=openapi.TYPE_STRING)
+    
+    username_param = openapi.Parameter('username', openapi.IN_QUERY, description="Retrieve User by username", type=openapi.TYPE_STRING)
     user_response = openapi.Response('response description', CustomUserSerializer)
-    @swagger_auto_schema(
-        operation_id="Create a Cart Item", responses={200: user_response}, manual_parameters=[username_param]
-    )
+    @swagger_auto_schema(operation_id="Retrieve a user: <username>' ", responses={200: user_response}, manual_parameters=[username_param])
     def get(self, request, pk=None, *args, **kwargs):
         """
-            Get a list of users or a single user by providing the user's 'id' or 'username' as a query parameter
+            Get a list of users or a single user by providing the user's 'username' as a parameter
         """
-        if pk != None:
+        username = request.query_params.get("username")
+
+        if username is not None:
             try:
-                user = CustomUser.objects.get(pk=pk)
+                user = CustomUser.objects.get(username=username)
                 serializer = CustomUserSerializer(user)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except CustomUser.DoesNotExist:
-                return Response(
-                    {"message": f"Product with id {pk} not found"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+                return Response({"error": f"user '{username}' does not exist"}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            
-            if request.query_params:
-                if "username" in request.query_params:
-                    print("reporting from request if else block")
-                    try:
-                        username = request.query_params["username"]
-                        user = CustomUser.objects.get(username=username)
-                        serializer = CustomUserSerializer(user)
-                        return Response(serializer.data, status=status.HTTP_200_OK)
-                    except ObjectDoesNotExist:
-                        return Response({"error": f"user '{username}' does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-                elif "id" in request.query_params or "pk" in request.query_params:
-                    try:
-                        user_id = request.query_params["id"]
-                        user = CustomUser.objects.get(id=user_id)
-                        serializer = CustomUserSerializer(user)
-                        return Response(serializer.data, status=status.HTTP_200_OK)
-                        
-                    except ObjectDoesNotExist:
-                        return Response({"error": f"User ID '{user_id}' does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        users = CustomUser.objects.all()
-        serializer = CustomUserSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            all_users = self.get_queryset()
+            serializer = CustomUserSerializer(all_users, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
     
-    user_response = openapi.Response('response description', CustomUserSerializer)
     @swagger_auto_schema(
         summary="Create a user to perfomr all actions!", request_body=CustomUserSerializer(many=True), responses={204: user_response}
     )
@@ -111,7 +86,10 @@ class UsersView(APIView):
         
         serializer = CustomUserSerializer(user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+    
+    
+    username_param = openapi.Parameter("username", openapi.IN_QUERY, description="Username to be removed", type=openapi.TYPE_STRING)
+    @swagger_auto_schema(operation_id="Remove a user: <username>", manual_parameters=[username_param])
     def delete(self, request, *args, **kwargs):
         """
             Delete a user by providing the user's 'username' as a query parameter
@@ -131,39 +109,59 @@ class UsersView(APIView):
         return Response({"message": "Provide a 'username' parameter to perform deletion"})
 
 
-class ProductsView(APIView):
-    # permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        operation_id="Create a Cart Item", responses={200: ProductsSerializer(many=True)}
-    )
+class UsersDetailView(APIView):
+    user_response = openapi.Response('response description', CustomUserSerializer)
+    @swagger_auto_schema(operation_id="Retrieve a user: <ID> ", responses={200: user_response})
     def get(self, request, pk=None, *args, **kwargs):
         """
-            Get a list of products or a single product by providing the product's 'id' or 'title' as a query parameter
+            Get a single user by providing the user's 'ID' as a parameter
         """
+        
         if pk != None:
             try:
-                product = Products.objects.get(pk=pk)
-                serializer = ProductsSerializer(product)
+                user = CustomUser.objects.get(id=pk)
+                serializer = CustomUserSerializer(user)
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            except Products.DoesNotExist:
-                return Response(
-                    {"message": f"Product with id {pk} not found"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-        else:
-            try:
-                product_name = request.query_params["title"]
-                product = Products.objects.get(title=product_name)
-                serializer = ProductsSerializer(product)
+                
+            except ObjectDoesNotExist:
+                return Response({"error": f"User ID '{pk}' does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Provide a user ID to retireve an existing user"}, status=status.HTTP_400_BAD_REQUEST)
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except:
-                products = Products.objects.all()
-                serializer = ProductsSerializer(products, many=True)
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
 
+class ProductsListView(APIView):
+    # permission_classes = [AllowAny]
+    def get_queryset(self):
+        products = Product.objects.all()
+        return products
+    
+    title_param = openapi.Parameter("title", openapi.IN_QUERY, description="title of the product", type=openapi.TYPE_STRING)
+    user_response = openapi.Response('response description', ProductsSerializer)
+    @swagger_auto_schema(operation_id="List or retirve a product: <titile>", responses={200: user_response}, manual_parameters=[title_param])
+    def get(self, request, *args, **kwargs):
+        """
+            Get a list of products or a single product by providing the product's 'title' as a query parameter
+        """
+    
+        if request.query_params:
+            if "titile" in request.query_params:
+                try:
+                    product_name = request.query_params["title"]
+                    product = Products.objects.get(title=product_name)
+                    serializer = ProductsSerializer(product)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                except Exception as e:
+                    return Response({"error": f"{e}"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+        all_products = self.get_queryset()
+        serializer = ProductsSerializer(all_products, many=True).data
+        return Response(serializer, status=status.HTTP_200_OK)
+
+
+    @swagger_auto_schema(operation_id="Added a product")
     def post(self, request, *args, **kwargs):
         """
             Create a new product. This action requires authentication
@@ -192,40 +190,59 @@ class ProductsView(APIView):
         except Exception as e:
             return Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
 
+
     def delete(self, request, pk=None, *args, **kwargs):
         """
-            Delete a product by providing the product's 'id' or 'title' as a query parameter
+            Delete a product by providing the product's 'id' as a path
         """
-        # print(request.user)
 
         if pk != None:
             try:
                 product = Products.objects.get(pk=pk)
             except Products.DoesNotExist:
-                return Response(
-                    {"message": f"Product with id {pk} not found"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+                return Response({"message": f"Product with id {pk} not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"message": "Provide the product 'id' or 'title' to delete an item"}, status=status.HTTP_400_BAD_REQUEST)
 
-        elif "title" in request.query_params:
+        product.delete()
+        return Response({"message": "Item has been deleted"}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+class ProductsDetailView(APIView):
+    id_path = openapi.Parameter("ID", openapi.IN_PATH, description="ID of the product", type=openapi.TYPE_INTEGER)
+    @swagger_auto_schema(operation_id="Create a Cart Item", responses={200: ProductsSerializer(many=True)}, manual_parameters=[id_path])
+    def get(self, request, pk=None, *args, **kwargs):
+        """
+            Get a list of products or a single product by providing the product's 'id' as a path
+        """
+        if pk != None:
+            try:
+                product = Products.objects.get(pk=pk)
+                serializer = ProductsSerializer(product)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Products.DoesNotExist:
+                return Response({"message": f"Product with id {pk} not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+            
+            
+    def delete(self, request, *args, **kwargs):
+        """
+            Delete a product by providing the product's 'title' as a query parameter
+        """
+        
+        if "title" in request.query_params:
             product_title = request.query_params.get("title")
             try:
                 product = Products.objects.get(title=product_title)
             except Products.DoesNotExist:
-                return Response(
-                    {"message": f"Product with title '{product_title}' not found"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+                return Response({"message": f"Product with title '{product_title}' not found"}, status=status.HTTP_404_NOT_FOUND)
         else:
-            return Response(
-                {"message": "Provide the product 'id' or 'title' to delete an item"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"message": "Provide the product 'id' or 'title' to delete an item"}, status=status.HTTP_400_BAD_REQUEST,)
 
         product.delete()
-        return Response(
-            {"message": "Item has been deleted"}, status=status.HTTP_204_NO_CONTENT
-        )
+        return Response({"message": "Item has been deleted"}, status=status.HTTP_204_NO_CONTENT)
+
 
 
 class CategoryListViews(APIView):

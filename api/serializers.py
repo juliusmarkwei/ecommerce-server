@@ -1,8 +1,8 @@
 from rest_framework.serializers import ModelSerializer
-from src.user import models as user_models
-from src.product import models as product_models
-from src.cart import models as cart_models
-from src.order import models as order_models
+from src.user.models import CustomUser
+from src.product.models import Products, Categories, Reviews
+from src.cart.models import Carts, CartItems
+from src.order.models import Orders, OrderLines
 from collections import OrderedDict
 from rest_framework import serializers
 
@@ -10,7 +10,7 @@ from rest_framework import serializers
 # user serializer
 class CustomUserSerializer(ModelSerializer):
     class Meta:
-        model = user_models.CustomUser
+        model = CustomUser
         fields = [
             "id",
             "email",
@@ -42,7 +42,7 @@ class CustomUserSerializer(ModelSerializer):
 # product serializer
 class ProductsSerializer(ModelSerializer):
     class Meta:
-        model = product_models.Products
+        model = Products
         fields = [
             "id",
             "category",
@@ -73,7 +73,7 @@ class ProductsSerializer(ModelSerializer):
 
 class CategoriesSerializer(ModelSerializer):
     class Meta:
-        model = product_models.Categories
+        model = Categories
         fields = [
             "id",
             "parent_category",
@@ -101,7 +101,7 @@ class CategoriesSerializer(ModelSerializer):
 
 class ReviewsSerializer(ModelSerializer):
     class Meta:
-        model = product_models.Reviews
+        model = Reviews
         fields = ["id", "user_id", "product", "rating", "comments", "created_at"]
 
     def get_fields(self):
@@ -121,7 +121,7 @@ class ReviewsSerializer(ModelSerializer):
 # Oder serializer
 class OrdersSerializer(ModelSerializer):
     class Meta:
-        model = order_models.Orders
+        model = Orders
         fields = ["id", "user", "created_at"]
 
     def get_fields(self):
@@ -140,7 +140,7 @@ class OrdersSerializer(ModelSerializer):
 
 class OrderLinesSerializer(ModelSerializer):
     class Meta:
-        model = order_models.OrderLines
+        model = OrderLines
         fields = ["id", "order", "product", "price", "quantity"]
 
     def get_fields(self):
@@ -159,7 +159,7 @@ class OrderLinesSerializer(ModelSerializer):
 
 class CartsSerializer(ModelSerializer):
     class Meta:
-        model = cart_models.Carts
+        model = Carts
         fields = ["id", "created_by", "status", "created_at", "updated_at"]
 
     def get_fields(self):
@@ -178,7 +178,7 @@ class CartsSerializer(ModelSerializer):
 
 class CartItemsSerializer(ModelSerializer):
     class Meta:
-        model = cart_models.CartItems
+        model = CartItems
         fields = ["id", "product_id", "price", "cart_id", "quantity", "created_at"]
 
     def get_fields(self):
@@ -193,3 +193,7 @@ class CartItemsSerializer(ModelSerializer):
         return new_fields
     
         id = serializers.IntegerField()
+        
+        
+class CartStatusSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=Carts.status_options)

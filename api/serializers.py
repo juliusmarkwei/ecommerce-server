@@ -25,18 +25,6 @@ class CustomUserSerializer(ModelSerializer):
             "company",
         ]
         
-    def get_fields(self):
-        new_fields = OrderedDict()
-        
-        for name, field in super().get_fields().items():
-            if name != 'id':
-                field.required = False
-                new_fields[name] = field
-            else:
-                new_fields[name] = field
-        return new_fields
-    
-        id = serializers.IntegerField()
 
 
 class CustomUserPOSTSerializer(ModelSerializer):
@@ -74,19 +62,6 @@ class ProductsSerializer(ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        
-    def get_fields(self):
-        new_fields = OrderedDict()
-        
-        for name, field in super().get_fields().items():
-            if name != 'id':
-                field.required = False
-                new_fields[name] = field
-            else:
-                new_fields[name] = field
-        return new_fields
-    
-        id = serializers.IntegerField()
 
 
 class CategoriesSerializer(ModelSerializer):
@@ -103,18 +78,6 @@ class CategoriesSerializer(ModelSerializer):
             "updated_at",
         ]
         
-    def get_fields(self):
-        new_fields = OrderedDict()
-        
-        for name, field in super().get_fields().items():
-            if name != 'id':
-                field.required = False
-                new_fields[name] = field
-            else:
-                new_fields[name] = field
-        return new_fields
-    
-        id = serializers.IntegerField()
 
 
 class ReviewsSerializer(ModelSerializer):
@@ -122,76 +85,24 @@ class ReviewsSerializer(ModelSerializer):
         model = Reviews
         fields = ["id", "user_id", "product", "rating", "comments", "created_at"]
 
-    def get_fields(self):
-        new_fields = OrderedDict()
-        
-        for name, field in super().get_fields().items():
-            if name != 'id':
-                field.required = False
-                new_fields[name] = field
-            else:
-                new_fields[name] = field
-        return new_fields
     
-        id = serializers.IntegerField()
-
-
 # Oder serializer
 class OrdersSerializer(ModelSerializer):
     class Meta:
         model = Orders
         fields = ["id", "user", "created_at"]
-
-    def get_fields(self):
-        new_fields = OrderedDict()
-        
-        for name, field in super().get_fields().items():
-            if name != 'id':
-                field.required = False
-                new_fields[name] = field
-            else:
-                new_fields[name] = field
-        return new_fields
-    
-        id = serializers.IntegerField()
         
 
 class OrderLinesSerializer(ModelSerializer):
     class Meta:
         model = OrderLines
         fields = ["id", "order", "product", "price", "quantity"]
-
-    def get_fields(self):
-        new_fields = OrderedDict()
-        
-        for name, field in super().get_fields().items():
-            if name != 'id':
-                field.required = False
-                new_fields[name] = field
-            else:
-                new_fields[name] = field
-        return new_fields
-    
-        id = serializers.IntegerField()
         
 
 class CartsSerializer(ModelSerializer):
     class Meta:
         model = Carts
         fields = ["id", "created_by", "status", "created_at", "updated_at"]
-
-    def get_fields(self):
-        new_fields = OrderedDict()
-        
-        for name, field in super().get_fields().items():
-            if name != 'id':
-                field.required = False
-                new_fields[name] = field
-            else:
-                new_fields[name] = field
-        return new_fields
-    
-        id = serializers.IntegerField()
         
 
 class CartItemsSerializer(ModelSerializer):
@@ -199,18 +110,6 @@ class CartItemsSerializer(ModelSerializer):
         model = CartItems
         fields = ["id", "product_id", "price", "cart_id", "quantity", "created_at"]
 
-    def get_fields(self):
-        new_fields = OrderedDict()
-        
-        for name, field in super().get_fields().items():
-            if name != 'id':
-                field.required = False
-                new_fields[name] = field
-            else:
-                new_fields[name] = field
-        return new_fields
-    
-        id = serializers.IntegerField()
         
         
 class CartStatusSerializer(serializers.Serializer):

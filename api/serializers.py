@@ -39,6 +39,24 @@ class CustomUserSerializer(ModelSerializer):
         id = serializers.IntegerField()
 
 
+class CustomUserPOSTSerializer(ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "email",
+            "phone",
+            "role",
+            "username",
+            "first_name",
+            "last_name",
+            "password",
+            "avatar",
+            "locale",
+            "bio",
+            "company",
+        ]
+
 # product serializer
 class ProductsSerializer(ModelSerializer):
     class Meta:

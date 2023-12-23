@@ -428,7 +428,7 @@ class ReviewDetailView(APIView):
 class OrdersListView(APIView):
     # permission_classes = [AllowAny]
     
-    @swagger_auto_schema(operation_id="Add an Order", resquest_body={201, OrdersSerializer()}, reponses=OrdersSerializer())
+    @swagger_auto_schema(operation_id="Add an Order", reponses={201, OrdersSerializer()}, request_body=OrdersSerializer())
     def post(self, request, *args, **kwargs):
         """
             Create a new order. This action requires authentication
@@ -467,7 +467,7 @@ class OrdersListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     
-    @swagger_auto_schema(operation_id="Remove an Order", manual_parameters=[username_param])
+    @swagger_auto_schema(operation_id="Remove an Order: <username>", manual_parameters=[username_param])
     def delete(self, request, pk=None, *args, **kwargs):
         """
             Delete an order by providing the owner's 'username' as a query parameter
@@ -517,6 +517,8 @@ class OrderDetailView(APIView):
                 return Response({"success": "Order item deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
             except ObjectDoesNotExist:
                 return Response({"error": f"Order item with if {pk} does not exist. Provide a valid 'ID'"}, status=status.HTTP_400_BAD_REQUEST,)
+
+        return Response({"error": "Provide an id to perform this action!"}, status=status.HTTP_400_BAD_REQUEST)
 
 
     
@@ -672,14 +674,15 @@ class CartsView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     
-    
+    owner_param = openapi.Parameter("owner", openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    @swagger_auto_schema(operation_id="Remove a user Cart: <owner>", manual_parameters=[owner_param])
     def delete(self, request, *args, **kwargs):
         """
             Remove a Cart by specifying the owner of the cart
         """
-        user = request.user
+        owner = request.query_param.get("owner")
         try:
-            cart = Carts.objects.get(created_by=user)
+            cart = Carts.objects.get(created_by=owner)
             cart.delete()
             return Response({"message": "Cart deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except ObjectDoesNotExist:
@@ -691,10 +694,7 @@ class CartItemsView(APIView):
     permission_classes = [IsAuthenticated]
     
     user_response = openapi.Response('response description', CartItemsSerializer)
-    @swagger_auto_schema(
-        request_body=CartItemsSerializer(), summary="Create a Cart Item",
-        responses={201: user_response}
-    )
+    @swagger_auto_schema(operation_id="Add a Cart Item", request_body=CartItemsSerializer(), summary="Create a Cart Item", responses={201: user_response})
     def post(self, request, *args, **kwargs):
         """
             Create a Cart Item.
@@ -726,10 +726,8 @@ class CartItemsView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     
-    product_param = openapi.Parameter('product title', openapi.IN_QUERY, description="Retrieve Cart by the product title", type=openapi.TYPE_STRING)
-    @swagger_auto_schema(
-        summary="List or retrieve all Cart Item",responses={200: user_response}, manual_parameters=[product_param]
-    )
+    product_param = openapi.Parameter('product', openapi.IN_QUERY, description="Retrieve Cart by the product title", type=openapi.TYPE_STRING)
+    @swagger_auto_schema(operation_id="List or retrieve a Cart Item: <product>", summary="List or retrieve all Cart Item",responses={200: user_response}, manual_parameters=[product_param])
     def get(self, request, *args, **kwargs):
         """
             List or retrieve a Cart Item

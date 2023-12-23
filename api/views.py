@@ -61,9 +61,7 @@ class UsersListView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     
-    @swagger_auto_schema(
-        summary="Create a user to perfomr all actions!", request_body=CustomUserSerializer(many=True), responses={204: user_response}
-    )
+    @swagger_auto_schema(operation_id="Add a user to perfomr all actions!", request_body=CustomUserSerializer(), responses={204: user_response})
     def post(self, request, *args, **kwargs):
         """
             Create a new user. This action doesn't require authentication
@@ -99,8 +97,6 @@ class UsersListView(APIView):
             username = request.query_params.get("username")
             try:
                 user = CustomUser.objects.get(username=username)
-                # Manually check for permission
-                # self.check_object_permissions(request, user)
                 user.delete()
                 return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
             except CustomUser.DoesNotExist:
@@ -113,7 +109,7 @@ class UsersListView(APIView):
 
 class UsersDetailView(APIView):
     user_response = openapi.Response('response description', CustomUserSerializer)
-    @swagger_auto_schema(operation_id="Retrieve a user: <ID> ", responses={200: user_response})
+    @swagger_auto_schema(operation_id="Retrieve a user: <id> ", responses={200: user_response})
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a single user by providing the user's 'ID' as a parameter
@@ -162,7 +158,7 @@ class ProductsListView(APIView):
         return Response(serializer, status=status.HTTP_200_OK)
 
 
-    @swagger_auto_schema(operation_id="Added a product")
+    @swagger_auto_schema(operation_id="Added a product", request_body=ProductsSerializer(), responses={201: user_response})
     def post(self, request, *args, **kwargs):
         """
             Create a new product. This action requires authentication
@@ -191,7 +187,8 @@ class ProductsListView(APIView):
         except Exception as e:
             return Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
 
-
+    
+    @swagger_auto_schema(operation_id="Removed a product: <id>")
     def delete(self, request, pk=None, *args, **kwargs):
         """
             Delete a product by providing the product's 'id' as a path
@@ -211,8 +208,8 @@ class ProductsListView(APIView):
 
 
 class ProductsDetailView(APIView):
-    id_path = openapi.Parameter("ID", openapi.IN_PATH, description="ID of the product", type=openapi.TYPE_INTEGER)
-    @swagger_auto_schema(operation_id="Create a Cart Item", responses={200: ProductsSerializer(many=True)}, manual_parameters=[id_path])
+    id_path = openapi.Parameter("id", openapi.IN_PATH, description="ID of the product", type=openapi.TYPE_INTEGER)
+    @swagger_auto_schema(operation_id="Retrieve a Cart Item: <id>", responses={200: ProductsSerializer(many=True)}, manual_parameters=[id_path])
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a list of products or a single product by providing the product's 'id' as a path
@@ -226,7 +223,8 @@ class ProductsDetailView(APIView):
                 return Response({"message": f"Product with id {pk} not found"}, status=status.HTTP_404_NOT_FOUND)
     
             
-            
+    title_param = openapi.Parameter("title", openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    @swagger_auto_schema(operation_id="Remove a product: <title>", manual_parameters=[title_param])
     def delete(self, request, *args, **kwargs):
         """
             Delete a product by providing the product's 'title' as a query parameter
@@ -249,14 +247,12 @@ class ProductsDetailView(APIView):
 class CategoryListViews(APIView):
     # permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        operation_id="List or retirve a product Category", responses={200: CategoriesSerializer(many=True)}
-    )
+    name_param = openapi.Parameter("name", openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    @swagger_auto_schema(operation_id="List or retirve a product Category", responses={200: CategoriesSerializer(many=True)}, manual_parameters=[name_param])
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a list of categories or a single category by providing the category's 'id'
         """
-        # print(request.user)
         
         if request.query_params:
             if "name" in request.query_params:
@@ -275,6 +271,9 @@ class CategoryListViews(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+    user_response = openapi.Response('response description', CategoriesSerializer)
+    @swagger_auto_schema(operation_id="Added a product Category", request_body=CategoriesSerializer(), responses={201: user_response})
     def post(self, request, *args, **kwargs):
         """
             Create a new category. This action requires authentication
@@ -301,6 +300,9 @@ class CategoryListViews(APIView):
         serializer = CategoriesSerializer(category)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+    
+    name_param = openapi.Parameter("name", openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    @swagger_auto_schema(operation_id="Removed a product Category: <name>", manual_parameters=[name_param])
     def delete(self, request, *args, **kwargs):
         """
             Delete a category by providing the category's 'name' as a query parameter
@@ -320,20 +322,22 @@ class CategoryListViews(APIView):
 
 
 class CategoryDetailView(APIView):
-    @swagger_auto_schema(
-        operation_id="Retireve a user Category", responses={200: CategoriesSerializer(many=True)}
-    )
+    @swagger_auto_schema(operation_id="Retireve a user Category", responses={200: CategoriesSerializer(many=True)})
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a single category by providing the category's 'id'
         """
-        try:
-            category = Categories.objects.get(id=pk)
-            serializer = CategoriesSerializer(category)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except:
-            return Response({"message": f"Category with id {pk} not found"},status=status.HTTP_404_NOT_FOUND,)
+        if pk != None:
+            try:
+                category = Categories.objects.get(id=pk)
+                serializer = CategoriesSerializer(category)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except:
+                return Response({"message": f"Category with id {pk} not found"},status=status.HTTP_404_NOT_FOUND,)
+        return Reponse({"error", "Provide the 'id' of the Category to retrieve"},status=status.HTTP_400_BAD_REQUEST)
     
+    
+    @swagger_auto_schema(operation_id="Removed a product Category: <id>")
     def delete(self, request, pk=None, *args, **kwargs):
         """
             Delete a category by providing the category's 'id'
@@ -349,42 +353,33 @@ class CategoryDetailView(APIView):
         
 
 
-class ReviewView(APIView):
+class ReviewListView(APIView):
     # permission_classes = [AllowAny]
-    @swagger_auto_schema(
-        operation_id="List or retrieve a user Review", responses={200: ReviewsSerializer(many=True)}
-    )
+    
+    @swagger_auto_schema(operation_id="List or retrieve a user Review", responses={200: ReviewsSerializer(many=True)})
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a list of reviews or a single review by providing the review's 'id' or 'product' as a query parameter
         """
-        if pk != None:
-            try:
-                review = Reviews.objects.get(id=pk)
-            except ObjectDoesNotExist:
-                return Response(
-                    {"error": f"You provided an invalid id '{pk}.'"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
 
-        elif request.query_params:
+        if request.query_params:
             if "product" in request.query_params:
                 product_name = request.query_params.get("product")
                 try:
                     review = Reviews.objects.get(product=product_name)
+                    serializer = ReviewsSerializer(review)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
                 except ObjectDoesNotExist:
                     return Response({"error": f"Invalid product name '{product_name}'"}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({"error": f"Provide 'name' as key with a value (Category name) to select a product."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if pk or request.query_params:
-            serializer = ReviewsSerializer(review)
-            return Response(serializer.data, status=status.HTTP_200_OK)
 
         reviews = Reviews.objects.all()
         serializer = ReviewsSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(operation_id="Added a user Review", request_body=ReviewsSerializer(), responses={201: ReviewsSerializer(many=True)})
     def post(self, request, *args, **kwargs):
         """
             Create a new review. This action requires authentication
@@ -408,6 +403,26 @@ class ReviewView(APIView):
 
         serializer = ReviewsSerializer(review)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+class ReviewDetailView(APIView):
+    
+    # user_response = openapi.Response('response description', ReviewsSerializer)
+    @swagger_auto_schema(operation_id="Retrieve a user Review: <id>")
+    def get(self, request, pk=None, *args, **kwargs):
+        """
+            Get a single review by providing the review's 'id' 
+        """
+        if pk != None:
+            try:
+                review = Reviews.objects.get(id=pk)
+                serializer = ReviewsSerializer(review)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except ObjectDoesNotExist:
+                return Response({"error": f"You provided an invalid id '{pk}.'"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Provide a review 'id' to retirve"})
+        
 
 
 
@@ -589,7 +604,7 @@ class CartsView(APIView):
     # permission_classes = [AllowAny]
     
     user_response = openapi.Response('response description', CartsSerializer)
-    @swagger_auto_schema(summary="Create a Cart for a user", request_body=CartStatusSerializer, responses={204: user_response})
+    @swagger_auto_schema(summary="Create a Cart for a user", request_body=CartStatusSerializer(), responses={204: user_response})
     def post(self, request, *args, **kwargs):
         """
             Create a cart for a user. This must be created before the user can create or add cart items
@@ -661,7 +676,7 @@ class CartItemsView(APIView):
     
     user_response = openapi.Response('response description', CartItemsSerializer)
     @swagger_auto_schema(
-        request_body=CartItemsSerializer(many=True), summary="Create a Cart Item",
+        request_body=CartItemsSerializer(), summary="Create a Cart Item",
         responses={201: user_response}
     )
     def post(self, request, *args, **kwargs):

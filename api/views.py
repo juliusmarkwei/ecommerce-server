@@ -15,7 +15,8 @@ try:
         CartItemsSerializer,
         CategoriesSerializer,
         ProductsSerializer,
-        CartStatusSerializer
+        CartStatusSerializer,
+        CustomUserPOSTSerializer
     )
     from rest_framework.response import Response
     from rest_framework import status
@@ -61,7 +62,7 @@ class UsersListView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     
-    @swagger_auto_schema(operation_id="Add a user to perfomr all actions!", request_body=CustomUserSerializer(), responses={204: user_response})
+    @swagger_auto_schema(operation_id="Add a user to perfomr all actions!", request_body=CustomUserPOSTSerializer(), responses={204: user_response})
     def post(self, request, *args, **kwargs):
         """
             Create a new user. This action doesn't require authentication
@@ -408,8 +409,7 @@ class ReviewListView(APIView):
 
 class ReviewDetailView(APIView):
     
-    # user_response = openapi.Response('response description', ReviewsSerializer)
-    @swagger_auto_schema(operation_id="Retrieve a user Review: <id>")
+    @swagger_auto_schema(operation_id="Retrieve a user Review: <id>", responses={200: ReviewsSerializer})
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a single review by providing the review's 'id' 
@@ -425,10 +425,10 @@ class ReviewDetailView(APIView):
         
 
 
-
 class OrdersListView(APIView):
     # permission_classes = [AllowAny]
     
+    @swagger_auto_schema(operation_id="Add an Order", resquest_body={201, OrdersSerializer()}, reponses=OrdersSerializer())
     def post(self, request, *args, **kwargs):
         """
             Create a new order. This action requires authentication
@@ -443,6 +443,9 @@ class OrdersListView(APIView):
         serializer = OrdersSerializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+    
+    username_param = openapi.Parameter("username", openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    @swagger_auto_schema(operation_id="List or retrieve a user Order: <username>", responses={200: OrdersSerializer(many=True)}, manual_parameters=[username_param])
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a list of orders or a single order by providing the  owner's'username' as a query parameter
@@ -463,6 +466,8 @@ class OrdersListView(APIView):
         serializer = OrdersSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    
+    @swagger_auto_schema(operation_id="Remove an Order", manual_parameters=[username_param])
     def delete(self, request, pk=None, *args, **kwargs):
         """
             Delete an order by providing the owner's 'username' as a query parameter
@@ -486,6 +491,7 @@ class OrdersListView(APIView):
 
 class OrderDetailView(APIView):
     
+    @swagger_auto_schema(operation_id="Retrieve a user Order: <id>", reponses=ReviewsSerializer(many=True))
     def get(self, pk=None):
         """
             List or retireve an Order by providing the id of the associated Order
@@ -498,6 +504,7 @@ class OrderDetailView(APIView):
             except ObjectDoesNotExist:
                 return Response({"error": f"You provided an invalid id '{pk}.'"}, status=status.HTTP_400_BAD_REQUEST)
     
+    @swagger_auto_schema(operation_id="Remove a user Order: <id>")
     def delete(self, request, pk=None, *args, **kwargs):
         """
             Delete an order by providing the id associiiiated with the Order
@@ -516,6 +523,7 @@ class OrderDetailView(APIView):
 class OrderLinesView(APIView):
     # permission_classes = [AllowAny]
     
+    @swagger_auto_schema(operation_id="Add an Order Item", request_body=OrderLinesSerializer(), responses={201: OrderLinesSerializer()})
     def post(self, request, *args, **kwargs):
         """
             Added an item to you Order
@@ -548,6 +556,9 @@ class OrderLinesView(APIView):
         serializer = OrderLinesSerializer(orderLine)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    
+    product_param = openapi.Parameter("product", openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    @swagger_auto_schema(operation_id="List or retrieve an Order Item: <product>", responses={200: OrderLinesSerializer(many=True)}, manual_parameters=[product_param])
     def get(self, request, *args, **kwargs):
         """
             List or retrieve an Order Item (Line) 
@@ -574,19 +585,24 @@ class OrderLinesView(APIView):
             else:
                 keys = [key for key in request.query_params.keys()]
                 return Response({"error": f"Provide key(s) '{keys}'"}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            orderLines = OrderLines.objects.all()
-            serializer = OrderLinesSerializer(orderLines, many=True)
-            
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
+        orderLines = OrderLines.objects.all()
+        serializer = OrderLinesSerializer(orderLines, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+    product_data = openapi.Parameter("product", openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    order_data = openapi.Parameter("order", openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    @swagger_auto_schema(operation_id="Remove an Order Item: <product & order>", manual_parameters=[product_data, order_data])
     def delete(self, request, format=None):
         """
             Remove an Order Item (Line) by providing the product & order associated with the Order Item
         """
-        product = request.data["product"]
-        order = request.data["order"]
-        
+        product = request.query_params.get("product")
+        order = request.query_params.get("order")
+
+        if product == None and order == None:
+            return Response({"error": "Provide the 'product' and 'order' as query parameter to delete an item"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             orderLine = OrderLines.objects.get(product=product, order=order)
             orderLine.delete()

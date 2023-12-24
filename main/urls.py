@@ -16,7 +16,8 @@ schema_view = swagger_get_schema_view(
     openapi.Info(
         title="Ecommerce API",
         default_version="v1",
-        description="A fully functional Ecommerce - Django Rest API project build and tested with restframework",
+        description="A fully functional Ecommerce - Django Rest API project build and tested with restframework \
+            and django restframework simple jwt. \n Note: Create a user to perform any of the actions below!",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(name="Developer", email="juliusmarkwei2000@gmail.com",),
         license=openapi.License(name="BSD License"),
@@ -36,7 +37,7 @@ urlpatterns = [
 
     path("admin/", admin.site.urls),
     path("api/", include("api.urls", namespace="api")),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path("", schema_view.with_ui("swagger", cache_timeout=0), name="schema-redoc")
 ]
 

@@ -622,7 +622,7 @@ class CartsView(APIView):
     # permission_classes = [AllowAny]
     
     user_response = openapi.Response('response description', CartsSerializer)
-    @swagger_auto_schema(summary="Create a Cart for a user", request_body=CartStatusSerializer(), responses={204: user_response})
+    @swagger_auto_schema(operation_id="Add a Cart for a user", request_body=CartStatusSerializer(), responses={204: user_response})
     def post(self, request, *args, **kwargs):
         """
             Create a cart for a user. This must be created before the user can create or add cart items
@@ -644,7 +644,7 @@ class CartsView(APIView):
     
     username= openapi.Parameter('owner', openapi.IN_QUERY, description="Retrieve Cart by username", required=True, type=openapi.TYPE_STRING)
     status= openapi.Parameter('status', openapi.IN_QUERY, description="Retrieve Cart by it's status", required=True, type=openapi.TYPE_STRING)
-    @swagger_auto_schema(summary="List or retrieve all Cart Items: <owner | status>",responses={200: user_response}, manual_parameters=[username,status])
+    @swagger_auto_schema(operation_id="List or retrieve all Cart Items: <owner | status>", responses={200: user_response}, manual_parameters=[username,status])
     def get(self, request, *args, **kwargs):
         """
             List or retrieve a cart by providing the owner's 'username' or the status of the Order Item

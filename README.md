@@ -13,9 +13,17 @@ The project was inspired by a random database schema of an ecommerce website I f
 3. Admin panel management configurations.
 4. Adding all the neccesary URL endpoints to for all the various views and thier methods. Not forgetting the admin panel too.
 5. Writing tests for all the views and thier methods. I also used Postman for testing as well.
-5. Including a <a href="https://ecommerce-backend-4el9fq6v0-julius-markweis-projects.vercel.app/" target="_blank">documentation</a> for the project through a python module called <a href="https://pypi.org/project/openapi3/" target="_blank">drf-yash</a> by <a href="https://www.openapis.org/" target="_blank">OpenAPI Initiative</a>.
+5. Including a <a href="https://ecommerce-backendapi.vercel.app/" target="_blank">documentation</a> for the project through a python module called <a href="https://pypi.org/project/openapi3/" target="_blank">drf-yash</a> by <a href="https://www.openapis.org/" target="_blank">OpenAPI Initiative</a>.
 5. Dockerized the Django Rest API whci I was able to successfully run on my local machine.
 6. Deploy the Django REST API to <a href="https://vercel.com/" target="_blank">vercel</a>
+
+
+## Images of the WebAPI
+
+<a href="https://ecommerce-backendapi.vercel.app/" target="_blank" title="Visit live">
+    <img src="./assets/others/Screenshot_api_first.png" >
+    <img src="./assets/others/Screenshot_api_second.png" >
+</a>
 
 ## Prerequisites
 ```

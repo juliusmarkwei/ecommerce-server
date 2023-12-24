@@ -82,3 +82,19 @@ Docker and Docker Compose should be installed on your system. For Docker install
 * Stopping the application: <strong>`docker-compose down`</strong>
 * Rebuilding the application after changes: <strong>`docker-compose up --build`</strong>
 
+## Get Involved
+
+We welcome contributions and participation from the community to help make this e-commerce backend API even better! Whether you're looking to fix bugs, add new features, or improve documentation, your help is greatly appreciated. Here's how you can get involved:
+
+### Reporting Issues 🚩
+If you encounter any bugs or issues, please report them using the <a href="https://github.com/juliusmarkwei/ecommerce-backend/issues"> Issues</a> section of my GitHub repository. When reporting issues, please include:
+
+* A clear and descriptive title.
+* A detailed description of the problem, including steps to reproduce it.
+* Any relevant logs or error messages.
+Your environment details (e.g., Django version, DRF version, database, etc.).
+
+
+### Contributing Code 💁🏼
+I love receiving pull requests from the community! If you have an improvement or a new feature you'd like to add, please feel free to do so 👍
+

@@ -143,7 +143,7 @@ class ProductsListView(APIView):
         """
     
         if request.query_params:
-            if "titile" in request.query_params:
+            if "title" in request.query_params:
                 try:
                     product_name = request.query_params["title"]
                     product = Products.objects.get(title=product_name)
@@ -209,6 +209,7 @@ class ProductsListView(APIView):
 
 
 class ProductsDetailView(APIView):
+    
     id_path = openapi.Parameter("id", openapi.IN_PATH, description="ID of the product", type=openapi.TYPE_INTEGER)
     @swagger_auto_schema(operation_id="Retrieve a Cart Item: <id>", responses={200: ProductsSerializer(many=True)}, manual_parameters=[id_path])
     def get(self, request, pk=None, *args, **kwargs):
@@ -323,7 +324,7 @@ class CategoryListViews(APIView):
 
 
 class CategoryDetailView(APIView):
-    @swagger_auto_schema(operation_id="Retireve a user Category", responses={200: CategoriesSerializer(many=True)})
+    @swagger_auto_schema(operation_id="Retireve a user Category", responses={200: CategoriesSerializer()})
     def get(self, request, pk=None, *args, **kwargs):
         """
             Get a single category by providing the category's 'id'

@@ -56,6 +56,7 @@ class ProductsSerializer(ModelSerializer):
             "picture",
             "summary",
             "description",
+            "tags",
             "price",
             "discount_type",
             "discount_value",

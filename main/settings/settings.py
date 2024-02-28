@@ -13,8 +13,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 SECRET_KEY =  env('SECRET_KEY')
-DEBUG =True
-ALLOWED_HOSTS = [".vercel.app", "now.sh"]
+DEBUG = env('DEBUG')
+ALLOWED_HOSTS = [".vercel.app", "now.sh", "localhost", "127.0.0.1"]
 
 
 # Application definition
